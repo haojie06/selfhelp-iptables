@@ -4,16 +4,21 @@
 
 只在debian/ubuntu上测试过，centos要用的话请`systemctl stop firewalld`，仅使用iptables。
 
+```bash
+wget https://github.com/aoyouer/selfhelp-iptables-whitelist/releases/download/1.0/selfhelp-iptables-whitelist
 chmod +x selfhelp-iptables-whitelist
+./selfhelp-iptables-whitelist -key 123 -protect 1080
+```
+
 有两种运行模式
 
 1. 全端口访问白名单限制
 
    默认阻止任何外部ip访问本机的任何端口（**除了22以及程序监听的端口**）
 
-2. 特定端口访问白名单限制
+2. 特定端口访问白名单限制 
 
-   默认阻止任何外部ip访问本地的特定端口
+   默认阻止任何外部ip访问本地的特定端口 带上参数 -protect后自动启用 **强烈建议使用该模式**
 
 使用第一种运行模式，执行程序后，所有的端口都会被禁止访问（默认放行了22端口的访问和icmp请求），之后请求 `http://example.com:8080/api/add?key=[你设置的key]` 可以将你的ip添加到白名单里面。
 
