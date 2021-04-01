@@ -19,17 +19,25 @@ func initIPtables() {
 	//看情况是否添加局域网连接
 	//允许ssh避免出问题
 	execCommand(`iptables -A SELF_WHITELIST -p tcp --dport 22 -j ACCEPT`)
+	//如果设置了白名单端口，一并放行
+	allowPorts := strings.Split(whitePorts, ",")
+	if len(allowPorts) > 0 {
+		for _, allowPort := range allowPorts {
+			execCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + allowPort + ` -j ACCEPT`)
+			execCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + allowPort + ` -j ACCEPT`)
+		}
+	}
 	execCommand(`iptables -A SELF_WHITELIST -p icmp -j ACCEPT`)
 	//注意放行次客户端监听的端口
 	execCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + listenPort + ` -j ACCEPT`)
 	if protectPorts == "" {
-		fmt.Println("未指定端口，使用全端口防护")
+		fmt.Println("未指定端口，使用全端口防护\n白名单端口:" + whitePorts)
 		//注意禁止连接放最后... 之后添加白名单时用 -I
 		//安全起见，还是不要使用 -P 设置默认丢弃
 		// execCommand(`iptables -P SELF_WHITELIST DROP`)
 		execCommand(`iptables -A SELF_WHITELIST -j DROP`)
 	} else {
-		fmt.Println("指定端口,拒绝下列端口的连接" + protectPorts)
+		fmt.Println("指定端口,拒绝下列端口的连接: " + protectPorts + "\n白名单端口: " + whitePorts)
 		pPorts := strings.Split(protectPorts, ",")
 		for _, port := range pPorts {
 			execCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -j DROP`)
