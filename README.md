@@ -7,7 +7,7 @@
 ```bash
 wget https://github.com/aoyouer/selfhelp-iptables-whitelist/releases/download/1.0/selfhelp-iptables-whitelist
 chmod +x selfhelp-iptables-whitelist
-./selfhelp-iptables-whitelist -key 123 -protect 1080
+./selfhelp-iptables-whitelist -k key -protect 1080 -white 22,80,443
 ```
 
 有两种运行模式
