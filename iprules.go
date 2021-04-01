@@ -23,8 +23,10 @@ func initIPtables() {
 	allowPorts := strings.Split(whitePorts, ",")
 	if len(allowPorts) > 0 {
 		for _, allowPort := range allowPorts {
-			execCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + allowPort + ` -j ACCEPT`)
-			execCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + allowPort + ` -j ACCEPT`)
+			if allowPort != "" {
+				execCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + allowPort + ` -j ACCEPT`)
+				execCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + allowPort + ` -j ACCEPT`)
+			}
 		}
 	}
 	execCommand(`iptables -A SELF_WHITELIST -p icmp -j ACCEPT`)
@@ -40,6 +42,9 @@ func initIPtables() {
 		fmt.Println("指定端口,拒绝下列端口的连接: " + protectPorts + "\n白名单端口: " + whitePorts)
 		pPorts := strings.Split(protectPorts, ",")
 		for _, port := range pPorts {
+			//记录日志
+			execCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -j LOG --log-prefix='[netfilter]' --log-level 4`)
+			execCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + port + ` -j LOG --log-prefix='[netfilter]' --log-level 4`)
 			execCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -j DROP`)
 			execCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + port + ` -j DROP`)
 		}

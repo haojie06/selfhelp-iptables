@@ -20,7 +20,7 @@ func execCommand(cmd string) {
 	result, err := cmdl.CombinedOutput()
 	if err != nil {
 		resultStr := string(result)
-		fmt.Println("执行命令" + cmd + "出错" + err.Error() + "\n" + resultStr)
+		fmt.Println("执行命令" + cmd + "出错\n" + err.Error() + "\n" + resultStr)
 	}
 }
 
