@@ -66,7 +66,7 @@ func ShowWhitelist(w http.ResponseWriter, req *http.Request) {
 	keyAuthentication := checkKey(req)
 	if keyAuthentication {
 		//获取ips
-		fmt.Fprintf(w, strings.Join(whiteIPs, ","))
+		fmt.Fprintf(w, strings.Join(whiteIPs, "\n"))
 	} else {
 		fmt.Fprintf(w, "key错误")
 	}
