@@ -14,7 +14,6 @@ import (
 //实时读取iptables写入的内核日志，并非所有系统都支持（文件路径大概不一样）
 func readIPLogs() {
 	///var/log/secure
-	kernLogURL := ""
 	if FileExist("/var/log/iptables.log") {
 		kernLogURL = "/var/log/iptables.log"
 	} else if FileExist("/var/log/kern.log") {

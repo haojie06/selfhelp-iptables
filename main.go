@@ -15,6 +15,7 @@ var (
 	listenPort     string
 	protectPorts   string
 	whitePorts     string
+	kernLogURL     = ""
 	recordedIPs    = make(map[string]int)
 	cmdColorGreen  = color.New(color.FgHiGreen)
 	cmdColorBlue   = color.New(color.FgBlue)

@@ -80,7 +80,7 @@ func GetLogs(w http.ResponseWriter, req *http.Request) {
 	keyAuthentication := checkKey(req)
 	if keyAuthentication {
 		//获取日志
-		ipLogs := execCommand(`cat /var/log/kern.log |grep netfilter | cut -f 1,3,4,11,16 -d " " `)
+		ipLogs := execCommand(`cat ` + kernLogURL + `| grep netfilter | cut -f 1,3,4,11,16 -d " " `)
 		fmt.Fprintf(w, ipLogs)
 	} else {
 		fmt.Fprintf(w, "key错误")

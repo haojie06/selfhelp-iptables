@@ -37,9 +37,11 @@ chmod +x selfhelp-iptables-whitelist
 
 在 Ubuntu/debian中，日志位于 */var/log/kern.log* 而 centos/rhel中，日志位于 */var/log/messages*,理论上程序已经做了判断，当然你也可以把iptables日志记录到单独的文件中,**需使用下面的名字**。
 
+**个人尝试，在某些系统下，把日志保存到其他文件中的尝试失败了，所以如果你修改了保存文件后发现iptables.log迟迟没有写入信息，那么删掉这个文件和配置文件中的设置并重新运行程序吧。**
+
 ```bash
 # 编辑rsyslog的配置文件
-vi /etc/syslog.conf
+vi /etc/rsyslog.conf
 # 加上下面这一行
 kern.warning /var/log/iptables.log
 # 手动创建该文件
