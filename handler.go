@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/gorilla/mux"
 )
 
@@ -22,13 +23,15 @@ func checkKey(req *http.Request) bool {
 	if len(key) > 0 && key[0] == keySetting {
 		return true
 	} else {
-		log.Println(remoteIP + " use false key" + key[0])
+		color.Set(color.FgRed)
+		log.Println(remoteIP + " 使用了错误的KEY:" + key[0])
+		color.Unset()
 		return false
 	}
 }
 
 func HelloServer(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, "SelfHelp iptables Whitelist\n/api/add?key=yourkey\n/api/list?key=yourkey\n/api/remove/ip?key=yourkey")
+	fmt.Fprintf(w, "SelfHelp iptables Whitelist\n/api/add?key=yourkey\n/api/list?key=yourkey\n/api/remove/ip?key=yourkey\n/api/log?key=yourkey")
 }
 
 func AddWhitelist(w http.ResponseWriter, req *http.Request) {
@@ -36,7 +39,7 @@ func AddWhitelist(w http.ResponseWriter, req *http.Request) {
 	remoteIP := strings.Split(req.RemoteAddr, ":")[0]
 	if keyAuthentication {
 		execCommand(`iptables -I SELF_WHITELIST -s ` + remoteIP + ` -j ACCEPT`)
-		fmt.Println("添加ip白名单 " + remoteIP)
+		cmdColorGreen.Println("添加ip白名单 " + remoteIP)
 		fmt.Fprintf(w, "添加ip白名单:"+remoteIP)
 		whiteIPs = append(whiteIPs, remoteIP)
 	} else {
@@ -49,7 +52,7 @@ func RemoveWhitelist(w http.ResponseWriter, req *http.Request) {
 	if keyAuthentication {
 		vars := mux.Vars(req)
 		removeIP := vars["ip"]
-		fmt.Println("移除ip白名单 " + removeIP)
+		cmdColorGreen.Println("移除ip白名单 " + removeIP)
 		fmt.Fprintf(w, "移除ip白名单:"+removeIP)
 		execCommand(`iptables -D SELF_WHITELIST -s ` + removeIP + ` -j ACCEPT`)
 		for index, ip := range whiteIPs {
@@ -118,7 +121,7 @@ func cmdlineHandler(cmd string) {
 		break
 	case "record":
 		for ip, record := range recordedIPs {
-			cmdColorYellow.Println(ip," 探测次数: ",record)
+			cmdColorYellow.Println(ip, " 探测次数: ", record)
 		}
 		break
 	case "help":

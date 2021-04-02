@@ -31,6 +31,29 @@ chmod +x selfhelp-iptables-whitelist
 
 **强烈建议使用第二种方法，全端口拦截会出现很多问题，如DNS无法查询之类的。**
 
+## 实时日志设置
+
+开始运行后，程序会尝试去寻找iptables的日志文件，并实时读取文件，当文件更新时，实时输出内容。不同系统的日志目录有差异。
+
+在 Ubuntu/debian中，日志位于 */var/log/kern.log* 而 centos/rhel中，日志位于 */var/log/messages*,理论上程序已经做了判断，当然你也可以把iptables日志记录到单独的文件中,**需使用下面的名字**。
+
+```bash
+# 编辑rsyslog的配置文件
+vi /etc/syslog.conf
+# 加上下面这一行
+kern.warning /var/log/iptables.log
+# 手动创建该文件
+touch /var/log/iptables.log
+# 重启服务
+systemctl restart rsyslog
+```
+
+之后程序会优先读取该日志文件。 
+
+![](https://img.aoyouer.com/images/2021/04/02/20210402170829.png)
+
+## 参数介绍
+
 启动参数介绍
 
 - -k key
@@ -49,6 +72,16 @@ chmod +x selfhelp-iptables-whitelist
 
   **可选参数**，放行的端口
 
+控制台参数介绍
+
+程序启动后，可以直接通过标准输入输入命令进行操作
+
+- help 显示帮助
+- add 添加ip白名单
+- list 列出当前添加的ip
+- remove 移除添加的ip
+- record 列出 探测ip以及次数记录
+
 几种请求
 
 - 添加白名单
@@ -63,6 +96,10 @@ chmod +x selfhelp-iptables-whitelist
 
   `http://example.com:8080/api/remove/[要删除的ip]?key=[你设置的key]`
 
+- 查看探测记录
+
+  `http://example.com:8080/api/remove/[要删除的ip]?key=[你设置的key]`
+
 退出程序后，程序会清空添加的iptables规则链（**程序自己新建了一条链，不会影响之前的链**），如果自动清理失败，可以采取手动清理的方式。
 
 ```bash
@@ -70,4 +107,3 @@ iptables -D INPUT -j SELF_WHITELIST
 iptables -F SELF_WHITELIST
 iptables -X SELF_WHITELIST
 ```
-
