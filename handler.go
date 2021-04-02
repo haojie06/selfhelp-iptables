@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/fatih/color"
@@ -31,7 +32,8 @@ func checkKey(req *http.Request) bool {
 }
 
 func HelloServer(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, "SelfHelp iptables Whitelist\n/api/add?key=yourkey\n/api/list?key=yourkey\n/api/remove/ip?key=yourkey\n/api/log?key=yourkey")
+	fmt.Fprintf(w, "SelfHelp iptables Whitelist\n/api/add?key=yourkey\n/api/list?key=yourkey"+
+		"\n/api/remove/ip?key=yourkey\n/api/log?key=yourkey\n/api/record?key=yourkey")
 }
 
 func AddWhitelist(w http.ResponseWriter, req *http.Request) {
@@ -82,6 +84,20 @@ func GetLogs(w http.ResponseWriter, req *http.Request) {
 		//获取日志
 		ipLogs := execCommand(`cat ` + kernLogURL + `| grep netfilter | cut -f 1,3,4,11,16 -d " " `)
 		fmt.Fprintf(w, ipLogs)
+	} else {
+		fmt.Fprintf(w, "key错误")
+	}
+}
+
+//只输出ip和探测数量
+func GetRecords(w http.ResponseWriter, req *http.Request) {
+	keyAuthentication := checkKey(req)
+	if keyAuthentication {
+		outStr := fmt.Sprintln("共有", len(recordedIPs), "个ip被记录")
+		for ip, count := range recordedIPs {
+			outStr += ip + " 记录次数: " + strconv.Itoa(count) + "\n"
+		}
+		fmt.Fprintln(w, outStr)
 	} else {
 		fmt.Fprintf(w, "key错误")
 	}

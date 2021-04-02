@@ -105,6 +105,10 @@ systemctl restart rsyslog
 
   `http://example.com:8080/api/remove/[要删除的ip]?key=[你设置的key]`
 
+- 查看探测计数
+
+   `http://example.com:8080/api/record/[要删除的ip]?key=[你设置的key]`
+
 退出程序后，程序会清空添加的iptables规则链（**程序自己新建了一条链，不会影响之前的链**），如果自动清理失败，可以采取手动清理的方式。
 
 ```bash
