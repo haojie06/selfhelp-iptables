@@ -34,6 +34,7 @@ func main() {
 		router.HandleFunc("/", HelloServer)
 		router.HandleFunc("/api/add", AddWhitelist)
 		router.HandleFunc("/api/list", ShowWhitelist)
+		router.HandleFunc("/api/log", GetLogs)
 		router.HandleFunc("/api/remove/{ip}", RemoveWhitelist)
 		fmt.Println("Server start Port:" + listenPort + " Key:" + keySetting + "\n")
 		err := http.ListenAndServe("0.0.0.0:"+listenPort, router)

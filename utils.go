@@ -15,13 +15,14 @@ func checkCommandExists(cmd string) bool {
 	return true
 }
 
-func execCommand(cmd string) {
+func execCommand(cmd string) string {
 	cmdl := exec.Command("bash", "-c", cmd)
 	result, err := cmdl.CombinedOutput()
 	if err != nil {
 		resultStr := string(result)
 		fmt.Println("执行命令" + cmd + "出错\n" + err.Error() + "\n" + resultStr)
 	}
+	return string(result)
 }
 
 //注意时左闭右开
