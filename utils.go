@@ -32,7 +32,13 @@ func execCommandWithoutOutput(cmd string) string {
 
 //注意时左闭右开
 func removeFromSlice(slice []string, s int) []string {
-	return append(slice[:s], slice[s+1:]...)
+	if s != len(slice)-1 {
+		return append(slice[:s], slice[s+1:]...)
+	} else if s == 0 {
+		return slice[1:]
+	} else {
+		return slice[:s-1]
+	}
 }
 
 //探测ip记录

@@ -113,6 +113,7 @@ func cmdlineHandler(cmd string) {
 			for index, ip := range whiteIPs {
 				if ip == ipNeedToRemove {
 					whiteIPs = removeFromSlice(whiteIPs, index)
+					break
 				}
 			}
 		} else {
@@ -120,6 +121,7 @@ func cmdlineHandler(cmd string) {
 		}
 		break
 	case "record":
+		cmdColorYellow.Println("共记录到", len(recordedIPs), "个ip")
 		for ip, record := range recordedIPs {
 			cmdColorYellow.Println(ip, " 探测次数: ", record)
 		}
