@@ -89,28 +89,41 @@ func cmdlineHandler(cmd string) {
 	// fmt.Println(cmd)
 	switch cmd {
 	case "list":
-		fmt.Printf("当前白名单中共有%d个ip\n", len(whiteIPs))
+		cmdColorGreen.Printf("当前白名单中共有%d个ip\n", len(whiteIPs))
 		for _, ip := range whiteIPs {
-			fmt.Println(ip)
+			cmdColorCyan.Println(ip)
 		}
 		break
 	case "add":
 		var ipNeedToAdd string
-		fmt.Println("请输入要添加的ip")
+		cmdColorGreen.Println("请输入要添加的ip")
 		fmt.Scanln(&ipNeedToAdd)
-		fmt.Println("命令已执行 " + addIPWhitelist(ipNeedToAdd))
+		cmdColorCyan.Println("命令已执行 " + addIPWhitelist(ipNeedToAdd))
 		whiteIPs = append(whiteIPs, ipNeedToAdd)
 		break
 	case "remove":
 		var ipNeedToRemove string
-		fmt.Println("请输入要删除的ip")
+		cmdColorGreen.Println("请输入要删除的ip")
 		fmt.Scanln(&ipNeedToRemove)
-		fmt.Println("命令已执行 " + delIPWhitelist(ipNeedToRemove))
-		for index, ip := range whiteIPs {
-			if ip == ipNeedToRemove {
-				whiteIPs = removeFromSlice(whiteIPs,index)
+		if strings.Contains(strings.Join(whiteIPs, ","), ipNeedToRemove) {
+			cmdColorCyan.Println("命令已执行 " + delIPWhitelist(ipNeedToRemove))
+			for index, ip := range whiteIPs {
+				if ip == ipNeedToRemove {
+					whiteIPs = removeFromSlice(whiteIPs, index)
+				}
 			}
+		} else {
+			cmdColorYellow.Println("白名单中无此ip")
 		}
+		break
+	case "record":
+		for ip, record := range recordedIPs {
+			cmdColorYellow.Println(ip," 探测次数: ",record)
+		}
+		break
+	case "help":
+		cmdColorBlue.Println("命令帮助:")
+		cmdColorCyan.Println("add 添加白名单\nremove 移除白名单\nlist 列出当前的白名单\nrecord 列出[探测ip:次数]记录")
 		break
 	case "exit":
 		os.Exit(1)

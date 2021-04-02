@@ -62,7 +62,7 @@ func removeChainAfterExit() {
 		<-c
 		//收到信号之后处理
 		//注意该用法
-		fmt.Println("退出程序")
+		cmdColorYellow.Println("退出程序")
 		execCommand(`iptables -D INPUT -j SELF_WHITELIST`)
 		execCommand(`iptables -F SELF_WHITELIST`)
 		execCommand(`iptables -X SELF_WHITELIST`)

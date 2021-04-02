@@ -6,14 +6,21 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/fatih/color"
 	"github.com/gorilla/mux"
 )
 
 var (
-	keySetting   string
-	listenPort   string
-	protectPorts string
-	whitePorts   string
+	keySetting     string
+	listenPort     string
+	protectPorts   string
+	whitePorts     string
+	recordedIPs         = make(map[string]int)
+	cmdColorGreen  = color.New(color.FgHiGreen)
+	cmdColorBlue   = color.New(color.FgBlue)
+	cmdColorRed    = color.New(color.FgRed)
+	cmdColorCyan   = color.New(color.FgCyan)
+	cmdColorYellow = color.New(color.FgHiYellow)
 )
 
 func initFlag() {
@@ -24,10 +31,13 @@ func initFlag() {
 }
 
 func main() {
+	//命令行颜色初始化
+
 	flushIPtables()
 	initFlag()
 	flag.Parse()
 	if keySetting != "" {
+		color.Set(color.FgCyan, color.Bold)
 		checkCommandExists("iptables")
 		initIPtables()
 		removeChainAfterExit()
@@ -40,11 +50,14 @@ func main() {
 			router.HandleFunc("/api/log", GetLogs)
 			router.HandleFunc("/api/remove/{ip}", RemoveWhitelist)
 			fmt.Println("Server start Port:" + listenPort + " Key:" + keySetting + "\n")
+			color.Unset()
 			err := http.ListenAndServe("0.0.0.0:"+listenPort, router)
 			if err != nil {
 				log.Fatal("Server error: " + err.Error())
 			}
 		}()
+		//开启一个协程实时读取 内核日志 过滤出尝试访问端口的ip
+		go readIPLogs()
 		for {
 			var cmdIn string
 			fmt.Scan(&cmdIn)

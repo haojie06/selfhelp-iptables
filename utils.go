@@ -35,3 +35,8 @@ func execCommandWithoutOutput(cmd string) string {
 func removeFromSlice(slice []string, s int) []string {
 	return append(slice[:s], slice[s+1:]...)
 }
+
+//探测ip记录
+func recordIP(ip string) {
+	recordedIPs[ip] = recordedIPs[ip] + 1
+}
