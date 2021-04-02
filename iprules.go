@@ -69,3 +69,20 @@ func removeChainAfterExit() {
 		os.Exit(1)
 	}()
 }
+
+func flushIPtables() {
+	execCommandWithoutOutput(`iptables -D INPUT -j SELF_WHITELIST`)
+	execCommandWithoutOutput(`iptables -D INPUT -j SELF_WHITELIST`)
+	execCommandWithoutOutput(`iptables -D INPUT -j SELF_WHITELIST`)
+	execCommandWithoutOutput(`iptables -F SELF_WHITELIST`)
+	execCommandWithoutOutput(`iptables -X SELF_WHITELIST`)
+	execCommandWithoutOutput(`iptables -X SELF_WHITELIST`)
+}
+
+func addIPWhitelist(ip string) string {
+	return execCommand(`iptables -I SELF_WHITELIST -s ` + ip + ` -j ACCEPT`)
+}
+
+func delIPWhitelist(ip string) string {
+	return execCommand(`iptables -D SELF_WHITELIST -s ` + ip + ` -j ACCEPT`)
+}

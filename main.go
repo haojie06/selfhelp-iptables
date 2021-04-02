@@ -13,7 +13,7 @@ var (
 	keySetting   string
 	listenPort   string
 	protectPorts string
-	whitePorts string
+	whitePorts   string
 )
 
 func initFlag() {
@@ -24,22 +24,32 @@ func initFlag() {
 }
 
 func main() {
+	flushIPtables()
 	initFlag()
 	flag.Parse()
 	if keySetting != "" {
 		checkCommandExists("iptables")
 		initIPtables()
 		removeChainAfterExit()
-		router := mux.NewRouter().StrictSlash(true)
-		router.HandleFunc("/", HelloServer)
-		router.HandleFunc("/api/add", AddWhitelist)
-		router.HandleFunc("/api/list", ShowWhitelist)
-		router.HandleFunc("/api/log", GetLogs)
-		router.HandleFunc("/api/remove/{ip}", RemoveWhitelist)
-		fmt.Println("Server start Port:" + listenPort + " Key:" + keySetting + "\n")
-		err := http.ListenAndServe("0.0.0.0:"+listenPort, router)
-		if err != nil {
-			log.Fatal("Server error: " + err.Error())
+		//开启go routine
+		go func() {
+			router := mux.NewRouter().StrictSlash(true)
+			router.HandleFunc("/", HelloServer)
+			router.HandleFunc("/api/add", AddWhitelist)
+			router.HandleFunc("/api/list", ShowWhitelist)
+			router.HandleFunc("/api/log", GetLogs)
+			router.HandleFunc("/api/remove/{ip}", RemoveWhitelist)
+			fmt.Println("Server start Port:" + listenPort + " Key:" + keySetting + "\n")
+			err := http.ListenAndServe("0.0.0.0:"+listenPort, router)
+			if err != nil {
+				log.Fatal("Server error: " + err.Error())
+			}
+		}()
+		for {
+			var cmdIn string
+			fmt.Scan(&cmdIn)
+			cmdlineHandler(cmdIn)
 		}
+
 	}
 }

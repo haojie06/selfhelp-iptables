@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -74,11 +75,46 @@ func ShowWhitelist(w http.ResponseWriter, req *http.Request) {
 
 func GetLogs(w http.ResponseWriter, req *http.Request) {
 	keyAuthentication := checkKey(req)
-		if keyAuthentication {
+	if keyAuthentication {
 		//获取日志
 		ipLogs := execCommand(`cat /var/log/kern.log |grep netfilter | cut -f 1,3,4,11,16 -d " " `)
 		fmt.Fprintf(w, ipLogs)
 	} else {
 		fmt.Fprintf(w, "key错误")
 	}
+}
+
+//暂时只接受最多两个参数的输入
+func cmdlineHandler(cmd string) {
+	// fmt.Println(cmd)
+	switch cmd {
+	case "list":
+		fmt.Printf("当前白名单中共有%d个ip\n", len(whiteIPs))
+		for _, ip := range whiteIPs {
+			fmt.Println(ip)
+		}
+		break
+	case "add":
+		var ipNeedToAdd string
+		fmt.Println("请输入要添加的ip")
+		fmt.Scanln(&ipNeedToAdd)
+		fmt.Println("命令已执行 " + addIPWhitelist(ipNeedToAdd))
+		whiteIPs = append(whiteIPs, ipNeedToAdd)
+		break
+	case "remove":
+		var ipNeedToRemove string
+		fmt.Println("请输入要删除的ip")
+		fmt.Scanln(&ipNeedToRemove)
+		fmt.Println("命令已执行 " + delIPWhitelist(ipNeedToRemove))
+		for index, ip := range whiteIPs {
+			if ip == ipNeedToRemove {
+				whiteIPs = removeFromSlice(whiteIPs,index)
+			}
+		}
+		break
+	case "exit":
+		os.Exit(1)
+		break
+	}
+
 }

@@ -25,6 +25,12 @@ func execCommand(cmd string) string {
 	return string(result)
 }
 
+func execCommandWithoutOutput(cmd string) string {
+	cmdl := exec.Command("bash", "-c", cmd)
+	result, _ := cmdl.CombinedOutput()
+	return string(result)
+}
+
 //注意时左闭右开
 func removeFromSlice(slice []string, s int) []string {
 	return append(slice[:s], slice[s+1:]...)
