@@ -39,7 +39,7 @@ chmod +x selfhelp-iptables-whitelist
 
 ```bash
 # 编辑rsyslog的配置文件
-vi /etc/syslog.conf
+vi /etc/rsyslog.conf
 # 加上下面这一行
 kern.warning /var/log/iptables.log
 # 手动创建该文件
