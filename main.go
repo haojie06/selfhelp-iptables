@@ -15,7 +15,7 @@ var (
 	listenPort     string
 	protectPorts   string
 	whitePorts     string
-	recordedIPs         = make(map[string]int)
+	recordedIPs    = make(map[string]int)
 	cmdColorGreen  = color.New(color.FgHiGreen)
 	cmdColorBlue   = color.New(color.FgBlue)
 	cmdColorRed    = color.New(color.FgRed)
@@ -49,7 +49,7 @@ func main() {
 			router.HandleFunc("/api/list", ShowWhitelist)
 			router.HandleFunc("/api/log", GetLogs)
 			router.HandleFunc("/api/remove/{ip}", RemoveWhitelist)
-			fmt.Println("Server start Port:" + listenPort + " Key:" + keySetting + "\n")
+			fmt.Println("Server start Port:"+listenPort+" Key:"+keySetting, "\n输入help查看控制台命令帮助")
 			color.Unset()
 			err := http.ListenAndServe("0.0.0.0:"+listenPort, router)
 			if err != nil {

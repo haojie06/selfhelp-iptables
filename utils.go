@@ -40,3 +40,9 @@ func removeFromSlice(slice []string, s int) []string {
 func recordIP(ip string) {
 	recordedIPs[ip] = recordedIPs[ip] + 1
 }
+
+//检查文件是否存在
+func FileExist(path string) bool {
+	_, err := os.Lstat(path)
+	return !os.IsNotExist(err)
+}
