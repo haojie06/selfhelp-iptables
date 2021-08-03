@@ -89,7 +89,7 @@ func readIPLogs() {
 				boldRed.Printf("%s 端口被探测 IP:%s SPT:%s DPT:%s TTL:%s COUNT:%s\n",time.Now().Format("2006-01-02 15:04:05"),logRecord.SrcIp,logRecord.SrcPort,logRecord.DstPort,logRecord.TTL,strconv.Itoa(recordedIPs[remoteIp]))
 				// 如果开启了自动添加，当失败次数大于设置的时候 添加ip白名单
 				if autoAdd != 0 && recordedIPs[remoteIp] > autoAdd && !whiteIPs[remoteIp]{
-					log.Println("失败次数超过五次,已为",remoteIp,"自动添加ip白名单")
+					log.Printf("失败次数超过%d次,已为%s自动添加ip白名单\n",autoAdd,remoteIp)
 					whiteIPs[remoteIp] = true
 					addIPWhitelist(remoteIp)
 				}
