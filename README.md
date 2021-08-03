@@ -5,7 +5,7 @@
 只在debian/ubuntu上测试过，centos要用的话请`systemctl stop firewalld`，仅使用iptables。
 
 ```bash
-wget https://github.com/aoyouer/selfhelp-iptables-whitelist/releases/download/1.0/selfhelp-iptables-whitelist
+wget https://github.com/aoyouer/selfhelp-iptables-whitelist/releases/download/1.1/selfhelp-iptables-whitelist
 chmod +x selfhelp-iptables-whitelist
 #拦截1080端口
 ./selfhelp-iptables-whitelist -k key -protect 1080
