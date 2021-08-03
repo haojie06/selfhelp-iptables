@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	autoAdd bool
+	autoAdd int
 	keySetting     string
 	listenPort     string
 	protectPorts   string
@@ -31,7 +31,7 @@ func initFlag() {
 	flag.StringVar(&listenPort, "p", "8080", "default listening port")
 	flag.StringVar(&protectPorts, "protect", "", "protect specified ports split with ,")
 	flag.StringVar(&whitePorts, "white", "", "whitelist ports allow access split with ,")
-	flag.BoolVar(&autoAdd, "auto",false,"auto add whitelist failed try > 5")
+	flag.IntVar(&autoAdd, "auto",0,"auto add whitelist after how many failed connections")
 }
 
 func main() {

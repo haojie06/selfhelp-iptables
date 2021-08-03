@@ -94,20 +94,25 @@ func GetLogs(w http.ResponseWriter, req *http.Request) {
 
 func GetRecords(w http.ResponseWriter, req *http.Request) {
 	keyAuthentication := checkKey(req)
+	var whitelistSlice, nowhitelistSlice, recordSlice []string
 	if keyAuthentication {
-		outStr := fmt.Sprintln("共有", len(recordedIPs), "个ip被记录")
 		for ip, count := range recordedIPs {
-			outStr += ip + " 记录次数: " + strconv.Itoa(count)
 			if _, exist := whiteIPs[ip]; exist {
-				outStr += " [白名单]\n"
+				whitelistSlice = append(whitelistSlice, ip + " 记录次数: " + strconv.Itoa(count) + " [白名单]\n")
 			} else {
-				outStr += "\n"
+				nowhitelistSlice = append(nowhitelistSlice, ip + " 记录次数: " + strconv.Itoa(count) + "\n")
 			}
+		}
+		outStr := fmt.Sprintf("共有个%d个ip被记录,其中%d个ip添加了白名单\n",len(recordedIPs),len(whitelistSlice))
+		recordSlice = append(whitelistSlice, nowhitelistSlice...)
+		for _, out := range recordSlice {
+			outStr = outStr + out
 		}
 		fmt.Fprintln(w, outStr)
 	} else {
 		fmt.Fprintf(w, "key错误")
 	}
+
 }
 
 //暂时只接受最多两个参数的输入
