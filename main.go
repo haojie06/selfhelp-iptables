@@ -36,6 +36,7 @@ func initFlag() {
 
 func main() {
 	//命令行颜色初始化
+	fmt.Println("开始运行白名单")
 	whiteIPs = make(map[string]bool)
 	flushIPtables()
 	initFlag()

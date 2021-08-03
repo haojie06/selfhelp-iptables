@@ -13,6 +13,15 @@ import (
 )
 
 //实时读取iptables写入的内核日志，并非所有系统都支持（文件路径大概不一样）
+type Record struct {
+	SrcIp string
+	SrcPort string
+	DstIp string
+	DstPort string
+	Proto string
+	TTL string
+	Interface string
+}
 func readIPLogs() {
 	///var/log/secure
 	if FileExist("/var/log/iptables.log") {
@@ -50,12 +59,34 @@ func readIPLogs() {
 				continue
 			}
 			if strings.Contains(line.Text, "[netfilter]") {
-				logTexts := strings.Split(line.Text, " ")
+				fields := strings.Fields(line.Text)
+				logRecord := &Record{}
+				for _, field := range fields {
+					pair := strings.Split(field,"=")
+					if len(pair) > 1 {
+						switch pair[0] {
+						case "IN":
+							logRecord.Interface = pair[1]
+						case "SRC":
+							logRecord.SrcIp = pair[1]
+						case "DST":
+							logRecord.DstIp = pair[1]
+						case "SPT":
+							logRecord.SrcPort = pair[1]
+						case "DPT":
+							logRecord.DstPort = pair[1]
+						case "PROTO":
+							logRecord.Proto = pair[1]
+						case "TTL":
+							logRecord.TTL = pair[1]
+						}
+					}
+				}
 				red := color.New(color.FgRed)
 				boldRed := red.Add(color.Bold)
-				remoteIp := strings.Split(logTexts[10], "=")[1]
+				remoteIp := logRecord.SrcIp
 				recordIP(remoteIp)
-				boldRed.Println("端口被探测", logTexts[0], logTexts[2], logTexts[3], logTexts[10], logTexts[15], logTexts[20], "count="+strconv.Itoa(recordedIPs[remoteIp]))
+				boldRed.Printf("%s 端口被探测 IP:%s SPT:%s DPT:%s TTL:%s COUNT:%s\n",time.Now().Format("2006-01-02 15:04:05"),logRecord.SrcIp,logRecord.SrcPort,logRecord.DstPort,logRecord.TTL,strconv.Itoa(recordedIPs[remoteIp]))
 				// 如果开启了自动添加，当失败次数大于5的时候 添加ip白名单
 				if autoAdd && recordedIPs[remoteIp] > 5 && !whiteIPs[remoteIp]{
 					log.Println("失败次数超过五次,已为",remoteIp,"自动添加ip白名单")
