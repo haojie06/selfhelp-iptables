@@ -59,6 +59,7 @@ func readIPLogs() {
 				// 如果开启了自动添加，当失败次数大于5的时候 添加ip白名单
 				if autoAdd && recordedIPs[remoteIp] > 5{
 					log.Println("失败次数超过五次,已为",remoteIp,"自动添加ip白名单")
+					whiteIPs = append(whiteIPs, remoteIp)
 					addIPWhitelist(remoteIp)
 				}
 			}
