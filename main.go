@@ -16,6 +16,7 @@ var (
 	listenPort     string
 	protectPorts   string
 	whitePorts     string
+	whiteIPs map[string]bool
 	kernLogURL     = ""
 	recordedIPs    = make(map[string]int)
 	cmdColorGreen  = color.New(color.FgHiGreen)
@@ -35,7 +36,7 @@ func initFlag() {
 
 func main() {
 	//命令行颜色初始化
-
+	whiteIPs = make(map[string]bool)
 	flushIPtables()
 	initFlag()
 	flag.Parse()

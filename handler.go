@@ -12,10 +12,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var (
-	whiteIPs []string
-)
-
 func checkKey(req *http.Request) bool {
 	req.ParseForm()
 	key := req.Form["key"]
@@ -43,7 +39,7 @@ func AddWhitelist(w http.ResponseWriter, req *http.Request) {
 		execCommand(`iptables -I SELF_WHITELIST -s ` + remoteIP + ` -j ACCEPT`)
 		cmdColorGreen.Println("添加ip白名单 " + remoteIP)
 		fmt.Fprintf(w, "添加ip白名单:"+remoteIP)
-		whiteIPs = append(whiteIPs, remoteIP)
+		whiteIPs[remoteIP] = true
 	} else {
 		fmt.Fprintf(w, "key错误")
 	}
@@ -57,9 +53,10 @@ func RemoveWhitelist(w http.ResponseWriter, req *http.Request) {
 		cmdColorGreen.Println("移除ip白名单 " + removeIP)
 		fmt.Fprintf(w, "移除ip白名单:"+removeIP)
 		execCommand(`iptables -D SELF_WHITELIST -s ` + removeIP + ` -j ACCEPT`)
-		for index, ip := range whiteIPs {
+		for ip, _ := range whiteIPs {
 			if ip == removeIP {
-				whiteIPs = removeFromSlice(whiteIPs, index)
+				//whiteIPs = removeFromSlice(whiteIPs, index)
+				delete(whiteIPs,ip)
 				break
 			}
 		}
@@ -72,7 +69,11 @@ func ShowWhitelist(w http.ResponseWriter, req *http.Request) {
 	keyAuthentication := checkKey(req)
 	if keyAuthentication {
 		//获取ips
-		fmt.Fprintf(w, strings.Join(whiteIPs, "\n"))
+		var ips string
+		for ip, _ := range whiteIPs {
+			ips = fmt.Sprintln(ips,ip)
+		}
+		fmt.Fprintf(w, ips)
 	} else {
 		fmt.Fprintf(w, "key错误")
 	}
@@ -90,6 +91,7 @@ func GetLogs(w http.ResponseWriter, req *http.Request) {
 }
 
 //只输出ip和探测数量
+
 func GetRecords(w http.ResponseWriter, req *http.Request) {
 	keyAuthentication := checkKey(req)
 	if keyAuthentication {
@@ -109,7 +111,7 @@ func cmdlineHandler(cmd string) {
 	switch cmd {
 	case "list":
 		cmdColorGreen.Printf("当前白名单中共有%d个ip\n", len(whiteIPs))
-		for _, ip := range whiteIPs {
+		for ip, _ := range whiteIPs {
 			cmdColorCyan.Println(ip)
 		}
 		break
@@ -118,37 +120,31 @@ func cmdlineHandler(cmd string) {
 		cmdColorGreen.Println("请输入要添加的ip")
 		fmt.Scanln(&ipNeedToAdd)
 		cmdColorCyan.Println("命令已执行 " + addIPWhitelist(ipNeedToAdd))
-		whiteIPs = append(whiteIPs, ipNeedToAdd)
-		break
+		whiteIPs[ipNeedToAdd] = true
 	case "remove":
 		var ipNeedToRemove string
 		cmdColorGreen.Println("请输入要删除的ip")
 		fmt.Scanln(&ipNeedToRemove)
-		if strings.Contains(strings.Join(whiteIPs, ","), ipNeedToRemove) {
+		if _, exist := whiteIPs[ipNeedToRemove]; exist {
 			cmdColorCyan.Println("命令已执行 " + delIPWhitelist(ipNeedToRemove))
-			for index, ip := range whiteIPs {
-				if ip == ipNeedToRemove {
-					whiteIPs = removeFromSlice(whiteIPs, index)
-					break
-				}
-			}
+			delete(whiteIPs,ipNeedToRemove)
 		} else {
 			cmdColorYellow.Println("白名单中无此ip")
 		}
-		break
+
 	case "record":
 		cmdColorYellow.Println("共记录到", len(recordedIPs), "个ip")
 		for ip, record := range recordedIPs {
 			cmdColorYellow.Println(ip, " 探测次数: ", record)
 		}
-		break
+
 	case "help":
 		cmdColorBlue.Println("命令帮助:")
 		cmdColorCyan.Println("add 添加白名单\nremove 移除白名单\nlist 列出当前的白名单\nrecord 列出[探测ip:次数]记录")
-		break
+
 	case "exit":
 		os.Exit(1)
-		break
+
 	}
 
 }
