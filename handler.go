@@ -83,7 +83,7 @@ func GetLogs(w http.ResponseWriter, req *http.Request) {
 	keyAuthentication := checkKey(req)
 	if keyAuthentication {
 		//获取日志
-		ipLogs := execCommand(`cat ` + kernLogURL + `| grep netfilter | cut -f 1,3,4,11,16 -d " " `)
+		ipLogs := execCommand(`cat ` + kernLogURL + `| grep netfilter`)
 		fmt.Fprintf(w, ipLogs)
 	} else {
 		fmt.Fprintf(w, "key错误")
@@ -97,7 +97,12 @@ func GetRecords(w http.ResponseWriter, req *http.Request) {
 	if keyAuthentication {
 		outStr := fmt.Sprintln("共有", len(recordedIPs), "个ip被记录")
 		for ip, count := range recordedIPs {
-			outStr += ip + " 记录次数: " + strconv.Itoa(count) + "\n"
+			outStr += ip + " 记录次数: " + strconv.Itoa(count)
+			if _, exist := whiteIPs[ip]; exist {
+				outStr += " [白名单]\n"
+			} else {
+				outStr += "\n"
+			}
 		}
 		fmt.Fprintln(w, outStr)
 	} else {
