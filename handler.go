@@ -94,24 +94,27 @@ func GetLogs(w http.ResponseWriter, req *http.Request) {
 
 func GetRecords(w http.ResponseWriter, req *http.Request) {
 	keyAuthentication := checkKey(req)
-	var whitelistSlice, nowhitelistSlice, recordSlice []string
+	var whitelistStrBuilder, nowhitelistStrBuilder strings.Builder
 	if keyAuthentication {
 		for ip, count := range recordedIPs {
 			if _, exist := whiteIPs[ip]; exist {
-				whitelistSlice = append(whitelistSlice, ip + " 记录次数: " + strconv.Itoa(count) + " [白名单]\n")
+				whitelistStrBuilder.WriteString(ip)
+				whitelistStrBuilder.WriteString(" 记录次数: ")
+				whitelistStrBuilder.WriteString(strconv.Itoa(count))
+				whitelistStrBuilder.WriteString(" [白名单]\n")
 			} else {
-				nowhitelistSlice = append(nowhitelistSlice, ip + " 记录次数: " + strconv.Itoa(count) + "\n")
+				nowhitelistStrBuilder.WriteString(ip)
+				nowhitelistStrBuilder.WriteString(" 记录次数: ")
+				nowhitelistStrBuilder.WriteString(strconv.Itoa(count))
+				nowhitelistStrBuilder.WriteString("\n")
 			}
 		}
 
-		recordSlice = append(whitelistSlice, nowhitelistSlice...)
 		strBuilder := strings.Builder{}
-		strBuilder.WriteString(fmt.Sprintf("共有个%d个ip被记录,其中%d个ip添加了白名单\n",len(recordedIPs),len(whitelistSlice)))
-		for _, out := range recordSlice {
-			strBuilder.WriteString(out)
-		}
-		outStr := strBuilder.String()
-		fmt.Fprintln(w, outStr)
+		strBuilder.WriteString(fmt.Sprintf("共有个%d个ip被记录,其中%d个ip添加了白名单,%d个ip没有添加白名单\n",len(recordedIPs),len(whiteIPs),len(recordedIPs)-len(whiteIPs)))
+		strBuilder.WriteString(whitelistStrBuilder.String())
+		strBuilder.WriteString(nowhitelistStrBuilder.String())
+		fmt.Fprintln(w, strBuilder.String())
 	} else {
 		fmt.Fprintf(w, "key错误")
 	}
