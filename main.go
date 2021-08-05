@@ -11,7 +11,8 @@ import (
 )
 
 var (
-	autoAdd        int
+	addThreshold   int
+	autoReset      bool // 开启后每天0点会进行重置
 	keySetting     string
 	listenPort     string
 	protectPorts   string
@@ -26,20 +27,21 @@ var (
 	cmdColorYellow = color.New(color.FgHiYellow)
 )
 
-func initFlag() {
+func init() {
 	flag.StringVar(&keySetting, "k", "", "key used to authorization")
 	flag.StringVar(&listenPort, "p", "8080", "default listening port")
 	flag.StringVar(&protectPorts, "protect", "", "protect specified ports split with ,")
 	flag.StringVar(&whitePorts, "white", "", "whitelist ports allow access split with ,")
-	flag.IntVar(&autoAdd, "auto", 0, "auto add whitelist after how many failed connections")
+	flag.IntVar(&addThreshold, "threshold", 0, "Auto add whitelist after how many failed connections")
+	flag.BoolVar(&autoReset, "autoreset",false,"Auto reset all records at 24:00")
 }
 
 func main() {
 	//命令行颜色初始化
-	fmt.Println("开始运行白名单")
+	cmdColorBlue.Println("开始运行iptables自助白名单")
 	flushIPtables()
-	initFlag()
 	flag.Parse()
+	startCron()
 	if keySetting != "" {
 		color.Set(color.FgCyan, color.Bold)
 		checkCommandExists("iptables")
@@ -69,6 +71,7 @@ func main() {
 			fmt.Scan(&cmdIn)
 			cmdlineHandler(cmdIn)
 		}
-
+	} else {
+		cmdColorRed.Println("key为必选参数")
 	}
 }
