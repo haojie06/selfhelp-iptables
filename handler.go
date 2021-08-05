@@ -154,10 +154,12 @@ func cmdlineHandler(cmd string) {
 		for ip, record := range recordedIPs {
 			cmdColorYellow.Println(ip, " 探测次数: ", record)
 		}
-
+	case "reset":
+		resetIPWhitelist()
+		cmdColorYellow.Println("已进行重置")
 	case "help":
 		cmdColorBlue.Println("命令帮助:")
-		cmdColorCyan.Println("add 添加白名单\nremove 移除白名单\nlist 列出当前的白名单\nrecord 列出[探测ip:次数]记录")
+		cmdColorCyan.Println("add 添加白名单\nremove 移除白名单\nlist 列出当前的白名单\nrecord 列出[探测ip:次数]记录\nreset 重置记录")
 
 	case "exit":
 		os.Exit(1)

@@ -10,7 +10,6 @@ import (
 
 func initIPtables() {
 	//便于管理，并且避免扰乱之前的规则，这里采取新建一条链的方案
-	// execCommand(`iptables -D INPUT -j SELF_WHITELIST`)
 	execCommand(`iptables -N SELF_WHITELIST`)
 	//开发时把自己的ip加进去，避免出问题
 	// execCommand(`iptables -A SELF_WHITELIST -s ` + "1.1.1.1" + ` -j ACCEPT`)
@@ -18,7 +17,7 @@ func initIPtables() {
 	execCommand(`iptables -A SELF_WHITELIST -s ` + "127.0.0.1" + ` -j ACCEPT`)
 	//看情况是否添加局域网连接
 	//允许ssh避免出问题
-	execCommand(`iptables -A SELF_WHITELIST -p tcp --dport 22 -j ACCEPT`)
+	//execCommand(`iptables -A SELF_WHITELIST -p tcp --dport 22 -j ACCEPT`)
 	//如果设置了白名单端口，一并放行
 	allowPorts := strings.Split(whitePorts, ",")
 	if len(allowPorts) > 0 {
@@ -42,14 +41,14 @@ func initIPtables() {
 		fmt.Println("指定端口,拒绝下列端口的连接: " + protectPorts + "\n白名单端口: " + whitePorts)
 		pPorts := strings.Split(protectPorts, ",")
 		for _, port := range pPorts {
-			//记录日志
+			// 非白名单ip访问指定端口的时候记录日志
 			execCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -j LOG --log-prefix='[netfilter]' --log-level 4`)
 			execCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + port + ` -j LOG --log-prefix='[netfilter]' --log-level 4`)
 			execCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -j DROP`)
 			execCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + port + ` -j DROP`)
 		}
 	}
-	//添加引用
+	//添加引用 入流量会到自定义的表进行处理
 	execCommand(`iptables -A INPUT -j SELF_WHITELIST`)
 }
 
@@ -61,7 +60,6 @@ func removeChainAfterExit() {
 	go func() {
 		<-c
 		//收到信号之后处理
-		//注意该用法
 		cmdColorYellow.Println("退出程序")
 		execCommand(`iptables -D INPUT -j SELF_WHITELIST`)
 		execCommand(`iptables -F SELF_WHITELIST`)
@@ -70,6 +68,7 @@ func removeChainAfterExit() {
 	}()
 }
 
+// 清空自定义表
 func flushIPtables() {
 	execCommandWithoutOutput(`iptables -D INPUT -j SELF_WHITELIST`)
 	execCommandWithoutOutput(`iptables -D INPUT -j SELF_WHITELIST`)
@@ -85,4 +84,17 @@ func addIPWhitelist(ip string) string {
 
 func delIPWhitelist(ip string) string {
 	return execCommand(`iptables -D SELF_WHITELIST -s ` + ip + ` -j ACCEPT`)
+}
+
+//TODO 添加流量统计追踪 无论是添加白名单 或者添加黑名单都应该添加追踪
+
+//TODO 添加黑名单,规则在白名单之前,优先级更高
+
+//TODO 白名单过期机制 如果开启了自动添加白名单则每天清空一次
+
+func resetIPWhitelist() {
+	flushIPtables()
+	initIPtables()
+	whiteIPs = make(map[string]bool)
+	recordedIPs = make(map[string]int)
 }

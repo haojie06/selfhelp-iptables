@@ -11,12 +11,12 @@ import (
 )
 
 var (
-	autoAdd int
+	autoAdd        int
 	keySetting     string
 	listenPort     string
 	protectPorts   string
 	whitePorts     string
-	whiteIPs map[string]bool
+	whiteIPs       = make(map[string]bool)
 	kernLogURL     = ""
 	recordedIPs    = make(map[string]int)
 	cmdColorGreen  = color.New(color.FgHiGreen)
@@ -31,13 +31,12 @@ func initFlag() {
 	flag.StringVar(&listenPort, "p", "8080", "default listening port")
 	flag.StringVar(&protectPorts, "protect", "", "protect specified ports split with ,")
 	flag.StringVar(&whitePorts, "white", "", "whitelist ports allow access split with ,")
-	flag.IntVar(&autoAdd, "auto",0,"auto add whitelist after how many failed connections")
+	flag.IntVar(&autoAdd, "auto", 0, "auto add whitelist after how many failed connections")
 }
 
 func main() {
 	//命令行颜色初始化
 	fmt.Println("开始运行白名单")
-	whiteIPs = make(map[string]bool)
 	flushIPtables()
 	initFlag()
 	flag.Parse()
@@ -62,8 +61,9 @@ func main() {
 				log.Fatal("Server error: " + err.Error())
 			}
 		}()
-		//开启一个协程实时读取 内核日志 过滤出尝试访问端口的ip
+		// 开启一个协程实时读取 内核日志 过滤出尝试访问端口的ip
 		go readIPLogs()
+		// 主协程读取用户输入并执行命令
 		for {
 			var cmdIn string
 			fmt.Scan(&cmdIn)
