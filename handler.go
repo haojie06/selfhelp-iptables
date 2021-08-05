@@ -101,6 +101,18 @@ func Reset(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func Vnstat(w http.ResponseWriter, req *http.Request) {
+	keyAuthentication := checkKey(req)
+	param := req.URL.Query().Get("param")
+	if keyAuthentication {
+		//获取日志
+		stat := execCommand("vnstat " + param)
+		fmt.Fprintf(w,stat)
+	} else {
+		fmt.Fprintf(w, "key错误")
+	}
+}
+
 //只输出ip和探测数量
 
 func GetRecords(w http.ResponseWriter, req *http.Request) {
