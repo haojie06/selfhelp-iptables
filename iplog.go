@@ -30,7 +30,7 @@ func readIPLogs() {
 			return new(Record)
 		},
 	}
-	///var/log/secure
+	// 对不同的系统进行区分
 	if FileExist("/var/log/iptables.log") {
 		kernLogURL = "/var/log/iptables.log"
 	} else if FileExist("/var/log/kern.log") {

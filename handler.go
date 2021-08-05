@@ -103,11 +103,14 @@ func GetRecords(w http.ResponseWriter, req *http.Request) {
 				nowhitelistSlice = append(nowhitelistSlice, ip + " 记录次数: " + strconv.Itoa(count) + "\n")
 			}
 		}
-		outStr := fmt.Sprintf("共有个%d个ip被记录,其中%d个ip添加了白名单\n",len(recordedIPs),len(whitelistSlice))
+
 		recordSlice = append(whitelistSlice, nowhitelistSlice...)
+		strBuilder := strings.Builder{}
+		strBuilder.WriteString(fmt.Sprintf("共有个%d个ip被记录,其中%d个ip添加了白名单\n",len(recordedIPs),len(whitelistSlice)))
 		for _, out := range recordSlice {
-			outStr = outStr + out
+			strBuilder.WriteString(out)
 		}
+		outStr := strBuilder.String()
 		fmt.Fprintln(w, outStr)
 	} else {
 		fmt.Fprintf(w, "key错误")
@@ -116,6 +119,7 @@ func GetRecords(w http.ResponseWriter, req *http.Request) {
 }
 
 //暂时只接受最多两个参数的输入
+
 func cmdlineHandler(cmd string) {
 	// fmt.Println(cmd)
 	switch cmd {
