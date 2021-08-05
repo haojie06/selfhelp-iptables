@@ -11,9 +11,9 @@ chmod +x selfhelp-iptables-whitelist
 ./selfhelp-iptables-whitelist -k key -protect 1080
 #或者全端口拦截
 ./selfhelp-iptables-whitelist -k key -white 22,80,443
-#另外添加了一个自动添加ip白名单的参数，当失败次数超过6次的时候便添加白名单(因为某分布式系统对于一些服务的探测，只会尝试最开始的四个包，如果无法建立连接便放弃)
+#另外添加了一个自动添加ip白名单的参数，当失败次数超过6次的时候便添加白名单
 #该模式必须要能够读取到iptables的日志才可行
-./selfhelp-iptables-whitelist -k key -auto 6 -protect 1080
+./selfhelp-iptables-whitelist -k key -threshold 6 -autoreset -protect 1080
 ```
 
 有两种运行模式
