@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/fatih/color"
@@ -13,6 +14,7 @@ import (
 )
 
 //实时读取iptables写入的内核日志，并非所有系统都支持（文件路径大概不一样）
+
 type Record struct {
 	SrcIp string
 	SrcPort string
@@ -23,6 +25,11 @@ type Record struct {
 	Interface string
 }
 func readIPLogs() {
+	var logRecordPool = sync.Pool{
+		New: func() interface{} {
+			return new(Record)
+		},
+	}
 	///var/log/secure
 	if FileExist("/var/log/iptables.log") {
 		kernLogURL = "/var/log/iptables.log"
@@ -60,7 +67,7 @@ func readIPLogs() {
 			}
 			if strings.Contains(line.Text, "[netfilter]") {
 				fields := strings.Fields(line.Text)
-				logRecord := &Record{}
+				logRecord := logRecordPool.Get().(*Record)
 				for _, field := range fields {
 					pair := strings.Split(field,"=")
 					if len(pair) > 1 {
@@ -87,6 +94,7 @@ func readIPLogs() {
 				remoteIp := logRecord.SrcIp
 				recordIP(remoteIp)
 				boldRed.Printf("%s 端口被探测 IP:%s SPT:%s DPT:%s TTL:%s COUNT:%s\n",time.Now().Format("2006-01-02 15:04:05"),logRecord.SrcIp,logRecord.SrcPort,logRecord.DstPort,logRecord.TTL,strconv.Itoa(recordedIPs[remoteIp]))
+				logRecordPool.Put(logRecord)
 				// 如果开启了自动添加，当失败次数大于设置的时候 添加ip白名单
 				if autoAdd != 0 && recordedIPs[remoteIp] > autoAdd && !whiteIPs[remoteIp]{
 					log.Printf("失败次数超过%d次,已为%s自动添加ip白名单\n",autoAdd,remoteIp)
