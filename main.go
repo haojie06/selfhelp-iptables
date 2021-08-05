@@ -54,6 +54,7 @@ func main() {
 			router.HandleFunc("/api/add", AddWhitelist)
 			router.HandleFunc("/api/list", ShowWhitelist)
 			router.HandleFunc("/api/log", GetLogs)
+			router.HandleFunc("/api/reset", Reset)
 			router.HandleFunc("/api/record", GetRecords)
 			router.HandleFunc("/api/remove/{ip}", RemoveWhitelist)
 			fmt.Println("Server start Port:"+listenPort+" Key:"+keySetting, "\n输入help查看控制台命令帮助")

@@ -90,6 +90,17 @@ func GetLogs(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func Reset(w http.ResponseWriter, req *http.Request) {
+	keyAuthentication := checkKey(req)
+	if keyAuthentication {
+		//获取日志
+		resetIPWhitelist()
+		fmt.Fprintf(w,"已进行重置")
+	} else {
+		fmt.Fprintf(w, "key错误")
+	}
+}
+
 //只输出ip和探测数量
 
 func GetRecords(w http.ResponseWriter, req *http.Request) {

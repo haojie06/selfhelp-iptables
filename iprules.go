@@ -31,6 +31,7 @@ func initIPtables() {
 	execCommand(`iptables -A SELF_WHITELIST -p icmp -j ACCEPT`)
 	//注意放行次客户端监听的端口
 	execCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + listenPort + ` -j ACCEPT`)
+	// TODO 加上黑名单
 	if protectPorts == "" {
 		fmt.Println("未指定端口，使用全端口防护\n白名单端口:" + whitePorts)
 		//注意禁止连接放最后... 之后添加白名单时用 -I
