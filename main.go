@@ -18,6 +18,7 @@ var (
 	protectPorts   string
 	whitePorts     string
 	whiteIPs       = make(map[string]bool)
+	blackIPs       = make(map[string]bool)
 	kernLogURL     = ""
 	recordedIPs    = make(map[string]int)
 	cmdColorGreen  = color.New(color.FgHiGreen)
@@ -33,7 +34,7 @@ func init() {
 	flag.StringVar(&protectPorts, "protect", "", "protect specified ports split with ,")
 	flag.StringVar(&whitePorts, "white", "", "whitelist ports allow access split with ,")
 	flag.IntVar(&addThreshold, "threshold", 0, "Auto add whitelist after how many failed connections")
-	flag.BoolVar(&autoReset, "autoreset",false,"Auto reset all records at 24:00")
+	flag.BoolVar(&autoReset, "autoreset", false, "Auto reset all records at 24:00")
 }
 
 func main() {
@@ -52,12 +53,16 @@ func main() {
 			router := mux.NewRouter().StrictSlash(true)
 			router.HandleFunc("/", HelloServer)
 			router.HandleFunc("/api/add", AddWhitelist)
+			router.HandleFunc("/api/ban/{ip}",AddBlackList)
 			router.HandleFunc("/api/list", ShowWhitelist)
+			router.HandleFunc("/api/listb",ShowBlacklist)
 			router.HandleFunc("/api/log", GetLogs)
 			router.HandleFunc("/api/reset", Reset)
 			router.HandleFunc("/api/vnstat", Vnstat)
 			router.HandleFunc("/api/record", GetRecords)
 			router.HandleFunc("/api/remove/{ip}", RemoveWhitelist)
+			router.HandleFunc("/api/unban/{ip}",RemoveBlacklist)
+
 			fmt.Println("Server start Port:"+listenPort+" Key:"+keySetting, "\n输入help查看控制台命令帮助")
 			color.Unset()
 			err := http.ListenAndServe("0.0.0.0:"+listenPort, router)

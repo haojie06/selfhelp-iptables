@@ -10,6 +10,7 @@ import (
 
 func initIPtables() {
 	//便于管理，并且避免扰乱之前的规则，这里采取新建一条链的方案
+	execCommand(`iptables -N SELF_BLACKLIST`)
 	execCommand(`iptables -N SELF_WHITELIST`)
 	//开发时把自己的ip加进去，避免出问题
 	// execCommand(`iptables -A SELF_WHITELIST -s ` + "1.1.1.1" + ` -j ACCEPT`)
@@ -50,6 +51,7 @@ func initIPtables() {
 		}
 	}
 	//添加引用 入流量会到自定义的表进行处理
+	execCommand(`iptables -A INPUT -j SELF_BLACKLIST`)
 	execCommand(`iptables -A INPUT -j SELF_WHITELIST`)
 }
 
@@ -62,10 +64,13 @@ func removeChainAfterExit() {
 		<-c
 		//收到信号之后处理
 		cmdColorYellow.Println("退出程序")
+		execCommand(`iptables -D INPUT -j SELF_BLACKLIST`)
 		execCommand(`iptables -D INPUT -j SELF_WHITELIST`)
+		execCommand(`iptables -F SELF_BLACKLIST`)
 		execCommand(`iptables -F SELF_WHITELIST`)
+		execCommand(`iptables -X SELF_BLACKLIST`)
 		execCommand(`iptables -X SELF_WHITELIST`)
-		os.Exit(1)
+		os.Exit(0)
 	}()
 }
 
@@ -77,6 +82,12 @@ func flushIPtables() {
 	execCommandWithoutOutput(`iptables -F SELF_WHITELIST`)
 	execCommandWithoutOutput(`iptables -X SELF_WHITELIST`)
 	execCommandWithoutOutput(`iptables -X SELF_WHITELIST`)
+	execCommandWithoutOutput(`iptables -D INPUT -j SELF_BLACKLIST`)
+	execCommandWithoutOutput(`iptables -D INPUT -j SELF_BLACKLIST`)
+	execCommandWithoutOutput(`iptables -D INPUT -j SELF_BLACKLIST`)
+	execCommandWithoutOutput(`iptables -F SELF_BLACKLIST`)
+	execCommandWithoutOutput(`iptables -X SELF_BLACKLIST`)
+	execCommandWithoutOutput(`iptables -X SELF_BLACKLIST`)
 }
 
 func addIPWhitelist(ip string) string {
@@ -89,13 +100,18 @@ func delIPWhitelist(ip string) string {
 
 //TODO 添加流量统计追踪 无论是添加白名单 或者添加黑名单都应该添加追踪
 
-//TODO 添加黑名单,规则在白名单之前,优先级更高
+func addIPBlacklist(ip string) string {
+	return execCommand(`iptables -I SELF_BLACKLIST -s ` + ip + ` -j DROP`)
+}
 
-//TODO 白名单过期机制 如果开启了自动添加白名单则每天清空一次
+func delIPBlacklist(ip string) string {
+	return execCommand(`iptables -D SELF_BLACKLIST -s ` + ip + ` -j DROP`)
+}
 
 func resetIPWhitelist() {
 	flushIPtables()
 	initIPtables()
 	whiteIPs = make(map[string]bool)
+	//blackIPs = make(map[string]bool) 黑名单不重置
 	recordedIPs = make(map[string]int)
 }
