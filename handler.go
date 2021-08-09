@@ -194,7 +194,11 @@ func cmdlineHandler(cmd string) {
 		for ip, _ := range whiteIPs {
 			cmdColorCyan.Println(ip)
 		}
-		break
+	case "listb":
+		cmdColorGreen.Printf("当前黑名单中共有%d个ip\n", len(blackIPs))
+		for ip, _ := range blackIPs {
+			cmdColorCyan.Println(ip)
+		}
 	case "add":
 		var ipNeedToAdd string
 		cmdColorGreen.Println("请输入要添加的ip")
@@ -237,7 +241,7 @@ func cmdlineHandler(cmd string) {
 		cmdColorYellow.Println("已进行重置")
 	case "help":
 		cmdColorBlue.Println("命令帮助:")
-		cmdColorCyan.Println("add 添加白名单\nremove 移除白名单\nlist 列出当前的白名单\nrecord 列出[探测ip:次数]记录\nreset 重置记录")
+		cmdColorCyan.Println("add 添加白名单\nremove 移除白名单\nban 添加黑名单\nunban 移除黑名单\nlist 列出当前的白名单\nlistb 列出当前黑名单\nrecord 列出[探测ip:次数]记录\nreset 重置记录")
 
 	case "exit":
 		os.Exit(1)
