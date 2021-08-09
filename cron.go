@@ -6,7 +6,7 @@ func startCron()  {
 	c := cron.New()
 	if addThreshold != 0 && autoReset{
 		cmdColorCyan.Println("开启每日重置")
-		c.AddFunc("@hourly", resetIPWhitelist)
+		c.AddFunc("@daily", resetIPWhitelist)
 	}
 	c.Start()
 }
