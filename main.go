@@ -46,7 +46,7 @@ func main() {
 	if keySetting != "" {
 		color.Set(color.FgCyan, color.Bold)
 		checkCommandExists("iptables")
-		initIPtables()
+		initIPtables(false)
 		removeChainAfterExit()
 		//开启go routine
 		go func() {

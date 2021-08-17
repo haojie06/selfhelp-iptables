@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 )
 
-func initIPtables() {
+func initIPtables(isreset bool) {
 	//便于管理，并且避免扰乱之前的规则，这里采取新建一条链的方案
 	execCommand(`iptables -N SELF_BLACKLIST`)
 	execCommand(`iptables -N SELF_WHITELIST`)
@@ -33,14 +34,21 @@ func initIPtables() {
 	//注意放行次客户端监听的端口
 	execCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + listenPort + ` -j ACCEPT`)
 	// TODO 加上黑名单
+	if isreset {
+		log.Println("执行防火墙重置")
+	}
 	if protectPorts == "" {
-		fmt.Println("未指定端口，使用全端口防护\n白名单端口:" + whitePorts)
+		if !isreset {
+			fmt.Println("未指定端口，使用全端口防护\n白名单端口:" + whitePorts)
+		}
 		//注意禁止连接放最后... 之后添加白名单时用 -I
 		//安全起见，还是不要使用 -P 设置默认丢弃
 		// execCommand(`iptables -P SELF_WHITELIST DROP`)
 		execCommand(`iptables -A SELF_WHITELIST -j DROP`)
 	} else {
-		fmt.Println("指定端口,拒绝下列端口的连接: " + protectPorts + "\n白名单端口: " + whitePorts)
+		if !isreset {
+			fmt.Println("指定端口,拒绝下列端口的连接: " + protectPorts + "\n白名单端口: " + whitePorts)
+		}
 		pPorts := strings.Split(protectPorts, ",")
 		for _, port := range pPorts {
 			// 非白名单ip访问指定端口的时候记录日志
@@ -110,7 +118,7 @@ func delIPBlacklist(ip string) string {
 
 func resetIPWhitelist() {
 	flushIPtables()
-	initIPtables()
+	initIPtables(true)
 	whiteIPs = make(map[string]bool)
 	//blackIPs = make(map[string]bool) 黑名单不重置
 	recordedIPs = make(map[string]int)
