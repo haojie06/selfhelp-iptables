@@ -22,7 +22,14 @@ var (
 		Short: "Selfhelp iptables whitelist is a tool controlling iptables through http api and cmdline.",
 		Long: `Selfhelp iptables whitelist 是一个通过http api和命令行控制iptables的工具
            https://github.com/aoyouer/selfhelp-iptables-whitelist`,
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println(`Selfhelp iptables whitelist 是一个通过http api和命令行控制iptables的工具
+              https://github.com/aoyouer/selfhelp-iptables-whitelist
+              使用selfhelp-iptables-whitelist start启动程序`)
+			os.Exit(0)
+		},
 	}
+
 	startCmd = &cobra.Command{
 		Use:     "start",
 		Example: "selfhelp-iptables-whitelist start -a adminkey -u userkey -p 22,23",
