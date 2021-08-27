@@ -45,6 +45,17 @@ Github: https://github.com/aoyouer/selfhelp-iptables-whitelist
 				err = errors.New("Require adminkey and userkey")
 			} else {
 				// 更多检查还没做
+				portCheck := true
+				if len(protectPorts) > 0 {
+					portCheck = utils.CheckPorts(protectPorts)
+				} else if len(whitePorts) > 0 {
+					portCheck = utils.CheckPorts(whitePorts)
+				}
+				if !portCheck {
+					utils.CmdColorRed.Println("请检查输入是否正确")
+					err = errors.New("illegal ports")
+					return
+				}
 				config.SetConfig(&config.Config{
 					AddThreshold: addThreshold,
 					AutoReset:    *autoReset,
@@ -83,12 +94,12 @@ func Execute() {
 }
 
 func init() {
-	startCmd.PersistentFlags().StringVarP(&adminKeySetting, "adminkey", "a", "", "Key used to control this system")
-	startCmd.PersistentFlags().StringVarP(&userKeySetting, "userkey", "u", "", "Key used to add whitelist through http api")
-	startCmd.PersistentFlags().StringVarP(&listenPort, "listen", "l", "8080", "Http listen port")
-	startCmd.PersistentFlags().StringVarP(&protectPorts, "protect", "p", "", "Ports need protect, splited with ','")
-	startCmd.PersistentFlags().StringVarP(&whitePorts, "white", "w", "","Whitelist ports allow access, splited with','")
-	startCmd.PersistentFlags().IntVarP(&addThreshold, "threhold", "t", 8, "Auto add whitelist after how many failed connections")
-	autoReset = rootCmd.PersistentFlags().BoolP("autoreset", "r", false, "Auto reset all records at 24:00")
+	startCmd.Flags().StringVarP(&adminKeySetting, "adminkey", "a", "", "Key used to control this system")
+	startCmd.Flags().StringVarP(&userKeySetting, "userkey", "u", "", "Key used to add whitelist through http api")
+	startCmd.Flags().StringVarP(&listenPort, "listen", "l", "8080", "Http listen port")
+	startCmd.Flags().StringVarP(&protectPorts, "protect", "p", "", "Ports need protect, splited with ','")
+	startCmd.Flags().StringVarP(&whitePorts, "white", "w", "", "Whitelist ports allow access, splited with','")
+	startCmd.Flags().IntVarP(&addThreshold, "threhold", "t", 8, "Auto add whitelist after how many failed connections")
+	autoReset = rootCmd.Flags().BoolP("autoreset", "r", false, "Auto reset all records at 24:00")
 	rootCmd.AddCommand(startCmd)
 }

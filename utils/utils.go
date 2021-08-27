@@ -1,8 +1,11 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
+	"strings"
 )
 
 func CheckCommandExists(cmd string) bool {
@@ -41,9 +44,21 @@ func RemoveFromSlice(slice []string, s int) []string {
 	}
 }
 
-
 //检查文件是否存在
 func FileExist(path string) bool {
 	_, err := os.Lstat(path)
 	return !os.IsNotExist(err)
+}
+
+// 检查端口是否合法
+func CheckPorts(strPorts string) (result bool) {
+	result = true
+	ports := strings.Split(strPorts, ",")
+	for _, p := range ports {
+		if _, err := strconv.Atoi(strings.TrimSpace(p)); err == nil {
+			result = false
+			fmt.Printf("%q 不是有效端口.\n", p)
+		}
+	}
+	return
 }

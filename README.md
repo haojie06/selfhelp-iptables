@@ -5,15 +5,17 @@
 只在debian/ubuntu上测试过，centos要用的话请`systemctl stop firewalld`，仅使用iptables。
 
 ```bash
-wget https://github.com/aoyouer/selfhelp-iptables-whitelist/releases/download/1.1/selfhelp-iptables-whitelist
+wget https://github.com/aoyouer/selfhelp-iptables-whitelist/releases/download/2.0/selfhelp-iptables-whitelist
 chmod +x selfhelp-iptables-whitelist
+# 查看帮助
+./selfhelp-iptables-whitelist help
 #拦截1080端口
-./selfhelp-iptables-whitelist -k key -protect 1080
-#或者全端口拦截
-./selfhelp-iptables-whitelist -k key -white 22,80,443
+./selfhelp-iptables-whitelist start -u userkey -a adminkey -p 1080
+#或者全端口拦截 放行 22 80 443
+./selfhelp-iptables-whitelist start -u userkey -a adminkey -w 22,80,443
 #另外添加了一个自动添加ip白名单的参数，当失败次数超过6次的时候便添加白名单
 #该模式必须要能够读取到iptables的日志才可行
-./selfhelp-iptables-whitelist -k key -threshold 6 -autoreset -protect 1080
+./selfhelp-iptables-whitelist start -a adminkey -u userkey -t 6 --autoreset -p 1080
 ```
 
 有两种运行模式
@@ -64,25 +66,28 @@ systemctl restart rsyslog
 
 启动参数介绍
 
-- -k key
+- -a adminkey
 
-  必须带上，http请求时需要带上这里设置的key
+  必须带上，用于控制api的key
+- -u userkey
 
-- -p port
+  userkey仅作为访问 /api/add?key=  时添加访问者ip到白名单的密钥使用，可分享给他人
+
+- -l port
 
   **可选参数**，该程序监听的端口，默认8080（不指定的时候）
 
-- -protect port1,port2
+- -p port1,port2
 
   **可选参数**，如果 带上了该参数，程序以第二种模式运行，即只限制部分端口的访问 逗号分隔
 
-- -white port1,port2
+- -w port1,port2
 
   **可选参数**，放行的端口
-- -threshold n
+- -t n
 
   **可选参数** 自动添加白名单的阈值(依赖日志读取),当连接失败次数超过n次时，自动为该ip添加白名单。
-- -autoreset
+- -r
 
   可选参数, 如果开启了自动添加白名单的功能时，是否需要在每天0点对所有的记录进行重置
 
