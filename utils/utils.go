@@ -1,37 +1,37 @@
-package main
+package utils
 
 import (
 	"os"
 	"os/exec"
 )
 
-func checkCommandExists(cmd string) bool {
+func CheckCommandExists(cmd string) bool {
 	_, err := exec.LookPath(cmd)
 	if err != nil {
-		cmdColorRed.Printf("没有找到命令%s\n", cmd)
+		CmdColorRed.Printf("没有找到命令%s\n", cmd)
 		os.Exit(1)
 	}
 	return true
 }
 
-func execCommand(cmd string) string {
+func ExecCommand(cmd string) string {
 	cmdl := exec.Command("bash", "-c", cmd)
 	result, err := cmdl.CombinedOutput()
 	if err != nil {
 		resultStr := string(result)
-		cmdColorRed.Println("执行命令" + cmd + "出错\n" + err.Error() + "\n" + resultStr)
+		CmdColorRed.Println("执行命令" + cmd + "出错\n" + err.Error() + "\n" + resultStr)
 	}
 	return string(result)
 }
 
-func execCommandWithoutOutput(cmd string) string {
+func ExecCommandWithoutOutput(cmd string) string {
 	cmdl := exec.Command("bash", "-c", cmd)
 	result, _ := cmdl.CombinedOutput()
 	return string(result)
 }
 
 //注意时左闭右开
-func removeFromSlice(slice []string, s int) []string {
+func RemoveFromSlice(slice []string, s int) []string {
 	if s != len(slice)-1 {
 		return append(slice[:s], slice[s+1:]...)
 	} else if s == 0 {
@@ -41,10 +41,6 @@ func removeFromSlice(slice []string, s int) []string {
 	}
 }
 
-//探测ip记录
-func recordIP(ip string) {
-	recordedIPs[ip] = recordedIPs[ip] + 1
-}
 
 //检查文件是否存在
 func FileExist(path string) bool {

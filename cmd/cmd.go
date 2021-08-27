@@ -7,6 +7,8 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"selfhelp-iptables-whitelist/config"
+	"selfhelp-iptables-whitelist/ipt"
+	"selfhelp-iptables-whitelist/utils"
 )
 
 var (
@@ -24,8 +26,8 @@ var (
            https://github.com/aoyouer/selfhelp-iptables-whitelist`,
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(`Selfhelp iptables whitelist 是一个通过http api和命令行控制iptables的工具
-              https://github.com/aoyouer/selfhelp-iptables-whitelist
-              使用selfhelp-iptables-whitelist start启动程序`)
+Github: https://github.com/aoyouer/selfhelp-iptables-whitelist
+请使用selfhelp-iptables-whitelist start启动程序`)
 			os.Exit(0)
 		},
 	}
@@ -41,17 +43,33 @@ var (
 			if userKeySetting == "" || adminKeySetting == "" {
 				color.New(color.FgRed).Println("adminkey和userkey不能为空")
 				err = errors.New("Require adminkey and userkey")
+			} else {
+				// 更多检查还没做
+				config.SetConfig(&config.Config{
+					AddThreshold: addThreshold,
+					AutoReset:    *autoReset,
+					AdminKey:     adminKeySetting,
+					UserKey:      userKeySetting,
+					ListenPort:   listenPort,
+					ProtectPorts: protectPorts,
+					WhitePorts:   whitePorts,
+				})
+				// 启动程序
+				utils.CmdColorBlue.Println("开始运行iptables自助白名单")
+				ipt.FlushIPtables()
+				startCron()
+				color.Set(color.FgCyan, color.Bold)
+				utils.CheckCommandExists("iptables")
+				ipt.InitIPtables(false)
+				// 开启一个协程实时读取 内核日志 过滤出尝试访问端口的ip
+				go ipt.ReadIPLogs()
+				// 主协程读取用户输入并执行命令
+				for {
+					var cmdIn string
+					fmt.Scan(&cmdIn)
+					cmdlineHandler(cmdIn)
+				}
 			}
-			// 更多检查还没做
-			config.SetConfig(&config.Config{
-				AddThreshold: addThreshold,
-				AutoReset:    *autoReset,
-				AdminKey:     adminKeySetting,
-				UserKey:      userKeySetting,
-				ListenPort:   listenPort,
-				ProtectPorts: protectPorts,
-				WhitePorts:   whitePorts,
-			})
 			return
 		},
 	}

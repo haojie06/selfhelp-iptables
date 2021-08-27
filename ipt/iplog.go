@@ -1,10 +1,11 @@
-package main
+package ipt
 
 import (
 	"fmt"
 	"log"
 	"os"
 	"selfhelp-iptables-whitelist/config"
+	"selfhelp-iptables-whitelist/utils"
 	"strconv"
 	"strings"
 	"sync"
@@ -26,18 +27,19 @@ type Record struct {
 	Interface string
 }
 
-func readIPLogs() {
+func ReadIPLogs() {
 	var logRecordPool = sync.Pool{
 		New: func() interface{} {
 			return new(Record)
 		},
 	}
+	var kernLogURL string
 	// 对不同的系统进行区分
-	if FileExist("/var/log/iptables.log") {
+	if utils.FileExist("/var/log/iptables.log") {
 		kernLogURL = "/var/log/iptables.log"
-	} else if FileExist("/var/log/kern.log") {
+	} else if utils.FileExist("/var/log/kern.log") {
 		kernLogURL = "/var/log/kern.log"
-	} else if FileExist("/var/log/messages ") {
+	} else if utils.FileExist("/var/log/messages ") {
 		kernLogURL = "/var/log/messages "
 	}
 	if kernLogURL != "" {
@@ -94,19 +96,25 @@ func readIPLogs() {
 				red := color.New(color.FgRed)
 				boldRed := red.Add(color.Bold)
 				remoteIp := logRecord.SrcIp
-				recordIP(remoteIp)
-				boldRed.Printf("%s 端口被探测 IP:%s SPT:%s DPT:%s TTL:%s COUNT:%s\n", time.Now().Format("2006-01-02 15:04:05"), logRecord.SrcIp, logRecord.SrcPort, logRecord.DstPort, logRecord.TTL, strconv.Itoa(recordedIPs[remoteIp]))
+				RecordIP(remoteIp)
+				boldRed.Printf("%s 端口被探测 IP:%s SPT:%s DPT:%s TTL:%s COUNT:%s\n", time.Now().Format("2006-01-02 15:04:05"), logRecord.SrcIp, logRecord.SrcPort, logRecord.DstPort, logRecord.TTL, strconv.Itoa(RecordedIPs[remoteIp]))
 				logRecordPool.Put(logRecord)
 				// 如果开启了自动添加，当失败次数大于设置的时候 添加ip白名单
 				threshold := config.GetConfig().AddThreshold
-				if threshold != 0 && recordedIPs[remoteIp] > threshold && !whiteIPs[remoteIp] {
+				if threshold != 0 && RecordedIPs[remoteIp] > threshold && !WhiteIPs[remoteIp] {
 					log.Printf("失败次数超过%d次,已为%s自动添加ip白名单\n", threshold, remoteIp)
-					whiteIPs[remoteIp] = true
-					addIPWhitelist(remoteIp)
+					WhiteIPs[remoteIp] = true
+					AddIPWhitelist(remoteIp)
 				}
 			}
 		}
 	} else {
-		cmdColorYellow.Println("找不到日志文件,无法实时显示探测ip")
+		utils.CmdColorYellow.Println("找不到日志文件,无法实时显示探测ip")
 	}
+}
+
+
+// 记录探测ip
+func RecordIP(ip string) {
+	RecordedIPs[ip] = RecordedIPs[ip] + 1
 }
