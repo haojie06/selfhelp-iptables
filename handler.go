@@ -245,7 +245,6 @@ func cmdlineHandler(cmd string) {
 
 	case "exit":
 		os.Exit(1)
-
 	}
 
 }

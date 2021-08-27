@@ -13,7 +13,8 @@ import (
 var (
 	addThreshold   int
 	autoReset      bool // 开启后每天0点会进行重置
-	keySetting     string
+	adminKeySetting string
+	userKeySetting     string
 	listenPort     string
 	protectPorts   string
 	whitePorts     string
@@ -29,10 +30,11 @@ var (
 )
 
 func init() {
-	flag.StringVar(&keySetting, "k", "", "key used to authorization")
-	flag.StringVar(&listenPort, "p", "8080", "default listening port")
-	flag.StringVar(&protectPorts, "protect", "", "protect specified ports split with ,")
-	flag.StringVar(&whitePorts, "white", "", "whitelist ports allow access split with ,")
+	flag.StringVar(&adminKeySetting,"ak","","Key used to control this system")
+	flag.StringVar(&userKeySetting, "uk", "", "Key used to add whitelist")
+	flag.StringVar(&listenPort, "p", "8080", "Default listening port")
+	flag.StringVar(&protectPorts, "protect", "", "Protect specified ports split with ,")
+	flag.StringVar(&whitePorts, "white", "", "Whitelist ports allow access split with ,")
 	flag.IntVar(&addThreshold, "threshold", 0, "Auto add whitelist after how many failed connections")
 	flag.BoolVar(&autoReset, "autoreset", false, "Auto reset all records at 24:00")
 }
@@ -43,7 +45,7 @@ func main() {
 	flushIPtables()
 	flag.Parse()
 	startCron()
-	if keySetting != "" {
+	if userKeySetting != "" && adminKeySetting != "" {
 		color.Set(color.FgCyan, color.Bold)
 		checkCommandExists("iptables")
 		initIPtables(false)
@@ -79,6 +81,6 @@ func main() {
 			cmdlineHandler(cmdIn)
 		}
 	} else {
-		cmdColorRed.Println("key为必选参数")
+		cmdColorRed.Println("userkey和adminkey为必选参数")
 	}
 }
