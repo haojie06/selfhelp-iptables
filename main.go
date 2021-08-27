@@ -25,8 +25,8 @@ var (
 
 func main() {
 	//命令行颜色初始化
-	cmdColorBlue.Println("开始运行iptables自助白名单")
 	cmd.Execute()
+	cmdColorBlue.Println("开始运行iptables自助白名单")
 	flushIPtables()
 	startCron()
 	cfg := config.GetConfig()
