@@ -46,9 +46,9 @@ Github: https://github.com/aoyouer/selfhelp-iptables-whitelist
 			} else {
 				// 更多检查还没做
 				portCheck := true
-				if len(protectPorts) > 0 {
+				if protectPorts != "" {
 					portCheck = utils.CheckPorts(protectPorts)
-				} else if len(whitePorts) > 0 {
+				} else if whitePorts != "" {
 					portCheck = utils.CheckPorts(whitePorts)
 				}
 				if !portCheck {
