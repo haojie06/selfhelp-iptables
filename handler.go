@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"selfhelp-iptables-whitelist/config"
 	"strconv"
 	"strings"
 
@@ -19,14 +20,14 @@ func checkKey(req *http.Request, privilege bool) (result bool) {
 	//golang没有三元运算符
 	if len(key) > 0 {
 		if privilege {
-			if key[0] == adminKeySetting {
+			if key[0] == config.GetConfig().AdminKey {
 				result = true
 			} else {
 				result = false
 				log.Println("使用了非AdminKey:", key[0])
 			}
 		} else {
-			if key[0] == userKeySetting && key[0] == adminKeySetting {
+			if key[0] == config.GetConfig().UserKey && key[0] == config.GetConfig().AdminKey {
 				result = true
 			} else {
 				result = false

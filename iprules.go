@@ -5,12 +5,14 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"selfhelp-iptables-whitelist/config"
 	"strings"
 	"syscall"
 )
 
 func initIPtables(isreset bool) {
 	//便于管理，并且避免扰乱之前的规则，这里采取新建一条链的方案
+	cfg := config.GetConfig()
 	execCommand(`iptables -N SELF_BLACKLIST`)
 	execCommand(`iptables -N SELF_WHITELIST`)
 	//开发时把自己的ip加进去，避免出问题
@@ -21,7 +23,7 @@ func initIPtables(isreset bool) {
 	//允许ssh避免出问题
 	//execCommand(`iptables -A SELF_WHITELIST -p tcp --dport 22 -j ACCEPT`)
 	//如果设置了白名单端口，一并放行
-	allowPorts := strings.Split(whitePorts, ",")
+	allowPorts := strings.Split(cfg.WhitePorts, ",")
 	if len(allowPorts) > 0 {
 		for _, allowPort := range allowPorts {
 			if allowPort != "" {
@@ -32,14 +34,14 @@ func initIPtables(isreset bool) {
 	}
 	execCommand(`iptables -A SELF_WHITELIST -p icmp -j ACCEPT`)
 	//注意放行次客户端监听的端口
-	execCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + listenPort + ` -j ACCEPT`)
+	execCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + cfg.ListenPort + ` -j ACCEPT`)
 	// TODO 加上黑名单
 	if isreset {
 		log.Println("执行防火墙重置")
 	}
-	if protectPorts == "" {
+	if cfg.ProtectPorts == "" {
 		if !isreset {
-			fmt.Println("未指定端口，使用全端口防护\n白名单端口:" + whitePorts)
+			fmt.Println("未指定端口，使用全端口防护\n白名单端口:" + cfg.WhitePorts)
 		}
 		//注意禁止连接放最后... 之后添加白名单时用 -I
 		//安全起见，还是不要使用 -P 设置默认丢弃
@@ -47,9 +49,9 @@ func initIPtables(isreset bool) {
 		execCommand(`iptables -A SELF_WHITELIST -j DROP`)
 	} else {
 		if !isreset {
-			fmt.Println("指定端口,拒绝下列端口的连接: " + protectPorts + "\n白名单端口: " + whitePorts)
+			fmt.Println("指定端口,拒绝下列端口的连接: " + cfg.ProtectPorts + "\n白名单端口: " + cfg.WhitePorts)
 		}
-		pPorts := strings.Split(protectPorts, ",")
+		pPorts := strings.Split(cfg.ProtectPorts, ",")
 		for _, port := range pPorts {
 			// 非白名单ip访问指定端口的时候记录日志
 			execCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -j LOG --log-prefix='[netfilter]' --log-level 4`)

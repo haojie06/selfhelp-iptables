@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"selfhelp-iptables-whitelist/config"
 	"strconv"
 	"strings"
 	"sync"
@@ -16,14 +17,15 @@ import (
 //实时读取iptables写入的内核日志，并非所有系统都支持（文件路径大概不一样）
 
 type Record struct {
-	SrcIp string
-	SrcPort string
-	DstIp string
-	DstPort string
-	Proto string
-	TTL string
+	SrcIp     string
+	SrcPort   string
+	DstIp     string
+	DstPort   string
+	Proto     string
+	TTL       string
 	Interface string
 }
+
 func readIPLogs() {
 	var logRecordPool = sync.Pool{
 		New: func() interface{} {
@@ -39,14 +41,14 @@ func readIPLogs() {
 		kernLogURL = "/var/log/messages "
 	}
 	if kernLogURL != "" {
-		config := tail.Config{
+		cfg := tail.Config{
 			ReOpen:    true,                                           //重新打开
 			Follow:    true,                                           //跟随
 			Location:  &tail.SeekInfo{Offset: 0, Whence: os.SEEK_END}, //从哪个地方开始读
 			MustExist: false,                                          //不存在不报错
 			Poll:      true,
 		}
-		tails, err := tail.TailFile(kernLogURL, config)
+		tails, err := tail.TailFile(kernLogURL, cfg)
 		if err != nil {
 			fmt.Println("tail file failed, err:", err)
 			return
@@ -69,7 +71,7 @@ func readIPLogs() {
 				fields := strings.Fields(line.Text)
 				logRecord := logRecordPool.Get().(*Record)
 				for _, field := range fields {
-					pair := strings.Split(field,"=")
+					pair := strings.Split(field, "=")
 					if len(pair) > 1 {
 						switch pair[0] {
 						case "IN":
@@ -93,11 +95,12 @@ func readIPLogs() {
 				boldRed := red.Add(color.Bold)
 				remoteIp := logRecord.SrcIp
 				recordIP(remoteIp)
-				boldRed.Printf("%s 端口被探测 IP:%s SPT:%s DPT:%s TTL:%s COUNT:%s\n",time.Now().Format("2006-01-02 15:04:05"),logRecord.SrcIp,logRecord.SrcPort,logRecord.DstPort,logRecord.TTL,strconv.Itoa(recordedIPs[remoteIp]))
+				boldRed.Printf("%s 端口被探测 IP:%s SPT:%s DPT:%s TTL:%s COUNT:%s\n", time.Now().Format("2006-01-02 15:04:05"), logRecord.SrcIp, logRecord.SrcPort, logRecord.DstPort, logRecord.TTL, strconv.Itoa(recordedIPs[remoteIp]))
 				logRecordPool.Put(logRecord)
 				// 如果开启了自动添加，当失败次数大于设置的时候 添加ip白名单
-				if addThreshold != 0 && recordedIPs[remoteIp] > addThreshold && !whiteIPs[remoteIp]{
-					log.Printf("失败次数超过%d次,已为%s自动添加ip白名单\n",addThreshold,remoteIp)
+				threshold := config.GetConfig().AddThreshold
+				if threshold != 0 && recordedIPs[remoteIp] > threshold && !whiteIPs[remoteIp] {
+					log.Printf("失败次数超过%d次,已为%s自动添加ip白名单\n", threshold, remoteIp)
 					whiteIPs[remoteIp] = true
 					addIPWhitelist(remoteIp)
 				}
