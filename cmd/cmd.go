@@ -87,7 +87,7 @@ func init() {
 	startCmd.PersistentFlags().StringVarP(&userKeySetting, "userkey", "u", "", "Key used to add whitelist through http api")
 	startCmd.PersistentFlags().StringVarP(&listenPort, "listen", "l", "8080", "Http listen port")
 	startCmd.PersistentFlags().StringVarP(&protectPorts, "protect", "p", "", "Ports need protect, splited with ','")
-	startCmd.PersistentFlags().StringVar(&whitePorts, "white", "w", "Whitelist ports allow access, splited with','")
+	startCmd.PersistentFlags().StringVarP(&whitePorts, "white", "w", "","Whitelist ports allow access, splited with','")
 	startCmd.PersistentFlags().IntVarP(&addThreshold, "threhold", "t", 8, "Auto add whitelist after how many failed connections")
 	autoReset = rootCmd.PersistentFlags().BoolP("autoreset", "r", false, "Auto reset all records at 24:00")
 	rootCmd.AddCommand(startCmd)
