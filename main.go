@@ -65,7 +65,7 @@ func main() {
 			router.HandleFunc("/api/remove/{ip}", RemoveWhitelist)
 			router.HandleFunc("/api/unban/{ip}",RemoveBlacklist)
 
-			fmt.Println("Server start Port:"+listenPort+" Key:"+keySetting, "\n输入help查看控制台命令帮助")
+			fmt.Println("Server start Port:"+listenPort+" UserKey:"+userKeySetting + " AdminKey:" + adminKeySetting, "\n输入help查看控制台命令帮助")
 			color.Unset()
 			err := http.ListenAndServe("0.0.0.0:"+listenPort, router)
 			if err != nil {

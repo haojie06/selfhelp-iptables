@@ -12,16 +12,31 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func checkKey(req *http.Request) bool {
+func checkKey(req *http.Request, privilege bool) (result bool) {
 	req.ParseForm()
 	key := req.Form["key"]
 	remoteIP := strings.Split(req.RemoteAddr, ":")[0]
 	//golang没有三元运算符
-	if len(key) > 0 && key[0] == keySetting {
+	if len(key) > 0 {
+		if privilege {
+			if key[0] == adminKeySetting {
+				result = true
+			} else {
+				result = false
+				log.Println("使用了非AdminKey:", key[0])
+			}
+		} else {
+			if key[0] == userKeySetting && key[0] == adminKeySetting {
+				result = true
+			} else {
+				result = false
+				log.Println("使用了错误的Key:", key[0])
+			}
+		}
 		return true
 	} else {
 		color.Set(color.FgRed)
-		log.Println(remoteIP + " 使用了错误的KEY:" + key[0])
+		log.Println(remoteIP + "使用了空的key")
 		color.Unset()
 		return false
 	}
@@ -33,7 +48,7 @@ func HelloServer(w http.ResponseWriter, req *http.Request) {
 }
 
 func AddWhitelist(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req)
+	keyAuthentication := checkKey(req,false)
 	remoteIP := strings.Split(req.RemoteAddr, ":")[0]
 	if keyAuthentication {
 		addIPWhitelist(remoteIP)
@@ -46,7 +61,7 @@ func AddWhitelist(w http.ResponseWriter, req *http.Request) {
 }
 
 func AddBlackList(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req)
+	keyAuthentication := checkKey(req,true)
 	if keyAuthentication {
 		vars := mux.Vars(req)
 		addIP := vars["ip"]
@@ -60,7 +75,7 @@ func AddBlackList(w http.ResponseWriter, req *http.Request) {
 }
 
 func RemoveWhitelist(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req)
+	keyAuthentication := checkKey(req,true)
 	if keyAuthentication {
 		vars := mux.Vars(req)
 		removeIP := vars["ip"]
@@ -76,7 +91,7 @@ func RemoveWhitelist(w http.ResponseWriter, req *http.Request) {
 }
 
 func RemoveBlacklist(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req)
+	keyAuthentication := checkKey(req,true)
 	if keyAuthentication {
 		vars := mux.Vars(req)
 		removeIP := vars["ip"]
@@ -92,7 +107,7 @@ func RemoveBlacklist(w http.ResponseWriter, req *http.Request) {
 }
 
 func ShowWhitelist(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req)
+	keyAuthentication := checkKey(req,true)
 	if keyAuthentication {
 		//获取ips
 		var ips string
@@ -106,7 +121,7 @@ func ShowWhitelist(w http.ResponseWriter, req *http.Request) {
 }
 
 func ShowBlacklist(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req)
+	keyAuthentication := checkKey(req,true)
 	if keyAuthentication {
 		//获取ips
 		var ips string
@@ -120,7 +135,7 @@ func ShowBlacklist(w http.ResponseWriter, req *http.Request) {
 }
 
 func GetLogs(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req)
+	keyAuthentication := checkKey(req,true)
 	if keyAuthentication {
 		//获取日志
 		ipLogs := execCommand(`cat ` + kernLogURL + `| grep netfilter`)
@@ -131,7 +146,7 @@ func GetLogs(w http.ResponseWriter, req *http.Request) {
 }
 
 func Reset(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req)
+	keyAuthentication := checkKey(req,true)
 	if keyAuthentication {
 		//获取日志
 		resetIPWhitelist()
@@ -142,7 +157,7 @@ func Reset(w http.ResponseWriter, req *http.Request) {
 }
 
 func Vnstat(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req)
+	keyAuthentication := checkKey(req,true)
 	param := req.URL.Query().Get("param")
 	if keyAuthentication {
 		//获取日志
@@ -156,7 +171,7 @@ func Vnstat(w http.ResponseWriter, req *http.Request) {
 //只输出ip和探测数量
 
 func GetRecords(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req)
+	keyAuthentication := checkKey(req,true)
 	var whitelistStrBuilder, nowhitelistStrBuilder strings.Builder
 	if keyAuthentication {
 		for ip, count := range recordedIPs {
