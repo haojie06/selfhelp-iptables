@@ -44,7 +44,6 @@ func InitIPtables(isreset bool) {
 	utils.ExecCommand(`iptables -A SELF_WHITELIST -p icmp -j ACCEPT`)
 	//注意放行次客户端监听的端口
 	utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + cfg.ListenPort + ` -j ACCEPT`)
-	// TODO 加上黑名单
 	if isreset {
 		log.Println("执行防火墙重置")
 	} else {
