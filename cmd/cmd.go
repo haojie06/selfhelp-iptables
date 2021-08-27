@@ -100,6 +100,6 @@ func init() {
 	startCmd.Flags().StringVarP(&protectPorts, "protect", "p", "", "Ports need protect, splited with ','")
 	startCmd.Flags().StringVarP(&whitePorts, "white", "w", "", "Whitelist ports allow access, splited with','")
 	startCmd.Flags().IntVarP(&addThreshold, "threhold", "t", 8, "Auto add whitelist after how many failed connections")
-	startCmd.Flags().StringVarP(&autoReset,"autoreset", "a", "", "Auto reset all records options: hh(half hour) h(hour) hd(half day) d(day) w(week)")
+	startCmd.Flags().StringVarP(&autoReset,"autoreset", "r", "", "Auto reset all records options: hh(half hour) h(hour) hd(half day) d(day) w(week)")
 	rootCmd.AddCommand(startCmd)
 }
