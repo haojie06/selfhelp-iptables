@@ -8,6 +8,7 @@ import (
 	"os"
 	"selfhelp-iptables-whitelist/config"
 	"selfhelp-iptables-whitelist/ipt"
+	"selfhelp-iptables-whitelist/server"
 	"selfhelp-iptables-whitelist/utils"
 )
 
@@ -74,6 +75,7 @@ Github: https://github.com/aoyouer/selfhelp-iptables-whitelist
 				ipt.InitIPtables(false)
 				// 开启一个协程实时读取 内核日志 过滤出尝试访问端口的ip
 				go ipt.ReadIPLogs()
+				go server.StartServer()
 				// 主协程读取用户输入并执行命令
 				for {
 					var cmdIn string
@@ -100,6 +102,6 @@ func init() {
 	startCmd.Flags().StringVarP(&protectPorts, "protect", "p", "", "Ports need protect, splited with ','")
 	startCmd.Flags().StringVarP(&whitePorts, "white", "w", "", "Whitelist ports allow access, splited with','")
 	startCmd.Flags().IntVarP(&addThreshold, "threhold", "t", 8, "Auto add whitelist after how many failed connections")
-	startCmd.Flags().StringVarP(&autoReset,"autoreset", "r", "", "Auto reset all records options: hh(half hour) h(hour) hd(half day) d(day) w(week)")
+	startCmd.Flags().StringVarP(&autoReset, "autoreset", "r", "", "Auto reset all records options: hh(half hour) h(hour) hd(half day) d(day) w(week)")
 	rootCmd.AddCommand(startCmd)
 }
