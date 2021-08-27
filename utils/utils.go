@@ -55,7 +55,7 @@ func CheckPorts(strPorts string) (result bool) {
 	result = true
 	ports := strings.Split(strPorts, ",")
 	for _, p := range ports {
-		if _, err := strconv.Atoi(strings.TrimSpace(p)); err == nil {
+		if _, err := strconv.Atoi(strings.TrimSpace(p)); err != nil {
 			result = false
 			fmt.Printf("%q 不是有效端口.\n", p)
 		}
