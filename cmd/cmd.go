@@ -13,7 +13,7 @@ import (
 
 var (
 	addThreshold    int
-	autoReset       *bool // 开启后每天0点会进行重置
+	autoReset       string // 自动重置
 	adminKeySetting string
 	userKeySetting  string
 	listenPort      string
@@ -58,7 +58,7 @@ Github: https://github.com/aoyouer/selfhelp-iptables-whitelist
 				}
 				config.SetConfig(&config.Config{
 					AddThreshold: addThreshold,
-					AutoReset:    *autoReset,
+					AutoReset:    autoReset,
 					AdminKey:     adminKeySetting,
 					UserKey:      userKeySetting,
 					ListenPort:   listenPort,
@@ -100,6 +100,6 @@ func init() {
 	startCmd.Flags().StringVarP(&protectPorts, "protect", "p", "", "Ports need protect, splited with ','")
 	startCmd.Flags().StringVarP(&whitePorts, "white", "w", "", "Whitelist ports allow access, splited with','")
 	startCmd.Flags().IntVarP(&addThreshold, "threhold", "t", 8, "Auto add whitelist after how many failed connections")
-	autoReset = rootCmd.Flags().BoolP("autoreset", "r", false, "Auto reset all records at 24:00")
+	startCmd.Flags().StringVarP(&autoReset,"autoreset", "a", "", "Auto reset all records options: hh(half hour) h(hour) hd(half day) d(day) w(week)")
 	rootCmd.AddCommand(startCmd)
 }

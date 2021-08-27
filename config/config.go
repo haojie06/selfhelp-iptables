@@ -2,7 +2,7 @@ package config
 
 type Config struct {
 	AddThreshold int
-	AutoReset    bool
+	AutoReset    string
 	AdminKey     string
 	UserKey      string
 	ListenPort   string
