@@ -51,6 +51,7 @@ func cmdlineHandler(cmd string) {
 		if _, exist := ipt.WhiteIPs[ipNeedToRemove]; exist {
 			utils.CmdColorCyan.Println("命令已执行 " + ipt.DelIPWhitelist(ipNeedToRemove))
 			delete(ipt.WhiteIPs, ipNeedToRemove)
+			delete(ipt.RecordedIPs, ipNeedToRemove)
 		} else {
 			utils.CmdColorYellow.Println("白名单中无此ip")
 		}
