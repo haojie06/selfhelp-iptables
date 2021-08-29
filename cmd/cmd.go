@@ -20,6 +20,7 @@ var (
 	listenPort      string
 	protectPorts    string
 	whitePorts      string
+	reject          bool
 	rootCmd         = &cobra.Command{
 		Use:   "selfhelp-iptables-whitelist",
 		Short: "Selfhelp iptables whitelist is a tool controlling iptables through http api and cmdline.",
@@ -103,5 +104,6 @@ func init() {
 	startCmd.Flags().StringVarP(&whitePorts, "white", "w", "", "Whitelist ports allow access, splited with','")
 	startCmd.Flags().IntVarP(&addThreshold, "threhold", "t", 8, "Auto add whitelist after how many failed connections")
 	startCmd.Flags().StringVarP(&autoReset, "autoreset", "r", "", "Auto reset all records options: hh(half hour) h(hour) hd(half day) d(day) w(week)")
+	startCmd.Flags().BoolVarP(&reject,"reject","d",false,"Send icmp packet after blocking")
 	rootCmd.AddCommand(startCmd)
 }

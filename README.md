@@ -13,9 +13,6 @@ chmod +x selfhelp-iptables-whitelist
 ./selfhelp-iptables-whitelist start -u userkey -a adminkey -p 1080
 #或者全端口拦截 放行 22 80 443
 ./selfhelp-iptables-whitelist start -u userkey -a adminkey -w 22,80,443
-#另外添加了一个自动添加ip白名单的参数，当失败次数超过6次的时候便添加白名单
-#该模式必须要能够读取到iptables的日志才可行
-./selfhelp-iptables-whitelist start -a adminkey -u userkey -t 6 --autoreset -p 1080
 ```
 
 有两种运行模式
@@ -95,6 +92,8 @@ systemctl restart rsyslog
   - hd 每半天重置
   - d 每天重置
   - w 每周重置
+- --reject -d
+  可选参数，开启后对于被拦截端口的访问会返回一个拒绝连接的icmp包
 
 控制台参数介绍
 

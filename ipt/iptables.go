@@ -12,16 +12,21 @@ import (
 )
 
 var (
-	WhiteIPs       = make(map[string]bool)
-	BlackIPs       = make(map[string]bool)
-	KernLogURL     = ""
-	RecordedIPs    = make(map[string]int)
+	WhiteIPs    = make(map[string]bool)
+	BlackIPs    = make(map[string]bool)
+	KernLogURL  = ""
+	RecordedIPs = make(map[string]int)
+	denyAction  = "DROP"
 )
-
 
 func InitIPtables(isreset bool) {
 	//便于管理，并且避免扰乱之前的规则，这里采取新建一条链的方案
 	cfg := config.GetConfig()
+	reject := cfg.Reject
+	// 对于拦截的端口的请求，默认直接丢包, 可选择返回拒绝连接的icmp
+	if reject {
+		denyAction = "REJECT"
+	}
 	utils.ExecCommand(`iptables -N SELF_BLACKLIST`)
 	utils.ExecCommand(`iptables -N SELF_WHITELIST`)
 	//开发时把自己的ip加进去，避免出问题
@@ -56,7 +61,7 @@ func InitIPtables(isreset bool) {
 		//注意禁止连接放最后... 之后添加白名单时用 -I
 		//安全起见，还是不要使用 -P 设置默认丢弃
 		// utils.ExecCommand(`iptables -P SELF_WHITELIST DROP`)
-		utils.ExecCommand(`iptables -A SELF_WHITELIST -j DROP`)
+		utils.ExecCommand(`iptables -A SELF_WHITELIST -j ` + denyAction)
 	} else {
 		if !isreset {
 			fmt.Println("指定端口,拒绝下列端口的连接: " + cfg.ProtectPorts + "\n白名单端口: " + cfg.WhitePorts)
@@ -66,8 +71,8 @@ func InitIPtables(isreset bool) {
 			// 非白名单ip访问指定端口的时候记录日志
 			utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -j LOG --log-prefix='[netfilter]' --log-level 4`)
 			utils.ExecCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + port + ` -j LOG --log-prefix='[netfilter]' --log-level 4`)
-			utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -j DROP`)
-			utils.ExecCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + port + ` -j DROP`)
+			utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -j ` + denyAction)
+			utils.ExecCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + port + ` -j ` + denyAction)
 		}
 	}
 	//添加引用 入流量会到自定义的表进行处理
@@ -121,11 +126,11 @@ func DelIPWhitelist(ip string) string {
 //TODO 添加流量统计追踪 无论是添加白名单 或者添加黑名单都应该添加追踪
 
 func AddIPBlacklist(ip string) string {
-	return utils.ExecCommand(`iptables -I SELF_BLACKLIST -s ` + ip + ` -j DROP`)
+	return utils.ExecCommand(`iptables -I SELF_BLACKLIST -s ` + ip + ` -j ` + denyAction)
 }
 
 func DelIPBlacklist(ip string) string {
-	return utils.ExecCommand(`iptables -D SELF_BLACKLIST -s ` + ip + ` -j DROP`)
+	return utils.ExecCommand(`iptables -D SELF_BLACKLIST -s ` + ip + ` -j ` + denyAction)
 }
 
 func ResetIPWhitelist() {
