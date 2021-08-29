@@ -66,6 +66,7 @@ Github: https://github.com/aoyouer/selfhelp-iptables-whitelist
 					ListenPort:   listenPort,
 					ProtectPorts: protectPorts,
 					WhitePorts:   whitePorts,
+					Reject:       reject,
 				})
 				// 启动程序
 				utils.CmdColorBlue.Println("开始运行iptables自助白名单")
@@ -104,6 +105,6 @@ func init() {
 	startCmd.Flags().StringVarP(&whitePorts, "white", "w", "", "Whitelist ports allow access, splited with','")
 	startCmd.Flags().IntVarP(&addThreshold, "threhold", "t", 8, "Auto add whitelist after how many failed connections")
 	startCmd.Flags().StringVarP(&autoReset, "autoreset", "r", "", "Auto reset all records options: hh(half hour) h(hour) hd(half day) d(day) w(week)")
-	startCmd.Flags().BoolVarP(&reject,"reject","d",false,"Send icmp packet after blocking")
+	startCmd.Flags().BoolVarP(&reject, "reject", "d", false, "Send icmp packet after blocking")
 	rootCmd.AddCommand(startCmd)
 }
