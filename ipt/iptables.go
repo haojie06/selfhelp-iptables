@@ -64,7 +64,7 @@ func InitIPtables(isreset bool) {
 		utils.ExecCommand(`iptables -A SELF_WHITELIST -j ` + denyAction)
 	} else {
 		if !isreset {
-			fmt.Println("指定端口,拒绝下列端口的连接: " + cfg.ProtectPorts + "\n白名单端口: " + cfg.WhitePorts)
+			fmt.Println("指定端口,拒绝下列端口的连接: " + cfg.ProtectPorts + "\n方式: " + denyAction + "\n白名单端口: " + cfg.WhitePorts)
 		}
 		pPorts := strings.Split(cfg.ProtectPorts, ",")
 		for _, port := range pPorts {
