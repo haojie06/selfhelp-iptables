@@ -21,7 +21,7 @@ func startCron() {
 			c.AddFunc("@hourly", ipt.ResetIPWhitelist)
 		case "hd":
 			utils.CmdColorCyan.Println("开启每半天重置")
-			c.AddFunc("* 0,12 * * *", ipt.ResetIPWhitelist)
+			c.AddFunc("0 0,12 * * *", ipt.ResetIPWhitelist)
 		case "d":
 			utils.CmdColorCyan.Println("开启每日重置")
 			c.AddFunc("@daily", ipt.ResetIPWhitelist)
