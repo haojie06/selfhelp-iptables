@@ -35,13 +35,13 @@ func checkKey(req *http.Request, privilege bool) (result bool) {
 				log.Println("使用了错误的Key:", key[0])
 			}
 		}
-		return true
 	} else {
 		color.Set(color.FgRed)
 		log.Println(remoteIP + "使用了空的key")
 		color.Unset()
-		return false
+		result = false
 	}
+	return
 }
 
 func HelloServer(w http.ResponseWriter, req *http.Request) {
@@ -198,7 +198,6 @@ func GetRecords(w http.ResponseWriter, req *http.Request) {
 	} else {
 		fmt.Fprintf(w, "key错误")
 	}
-
 }
 
 
