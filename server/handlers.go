@@ -57,7 +57,7 @@ func HelloServer(w http.ResponseWriter, req *http.Request) {
 }
 
 func AddWhitelist(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req, false)
+	keyAuthentication := checkKey(req, false, "AddWhitelist")
 	remoteIP := strings.Split(req.RemoteAddr, ":")[0]
 	if keyAuthentication {
 		ipt.AddIPWhitelist(remoteIP)
@@ -70,7 +70,7 @@ func AddWhitelist(w http.ResponseWriter, req *http.Request) {
 }
 
 func AddBlackList(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req, true)
+	keyAuthentication := checkKey(req, true, "AddBlackList")
 	if keyAuthentication {
 		vars := mux.Vars(req)
 		addIP := vars["ip"]
@@ -84,7 +84,7 @@ func AddBlackList(w http.ResponseWriter, req *http.Request) {
 }
 
 func RemoveWhitelist(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req, true)
+	keyAuthentication := checkKey(req, true, "RemoveWhitelist")
 	if keyAuthentication {
 		vars := mux.Vars(req)
 		removeIP := vars["ip"]
@@ -100,7 +100,7 @@ func RemoveWhitelist(w http.ResponseWriter, req *http.Request) {
 }
 
 func RemoveBlacklist(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req, true)
+	keyAuthentication := checkKey(req, true, "RemoveBlacklist")
 	if keyAuthentication {
 		vars := mux.Vars(req)
 		removeIP := vars["ip"]
@@ -116,7 +116,7 @@ func RemoveBlacklist(w http.ResponseWriter, req *http.Request) {
 }
 
 func ShowWhitelist(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req, true)
+	keyAuthentication := checkKey(req, true, "ShowWhitelist")
 	if keyAuthentication {
 		//获取ips
 		var ips string
@@ -130,7 +130,7 @@ func ShowWhitelist(w http.ResponseWriter, req *http.Request) {
 }
 
 func ShowBlacklist(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req, true)
+	keyAuthentication := checkKey(req, true, "ShowBlacklist")
 	if keyAuthentication {
 		//获取ips
 		var ips string
@@ -144,7 +144,7 @@ func ShowBlacklist(w http.ResponseWriter, req *http.Request) {
 }
 
 func GetLogs(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req, true)
+	keyAuthentication := checkKey(req, true, "GetLogs")
 	if keyAuthentication {
 		//获取日志
 		ipLogs := utils.ExecCommand(`cat ` + ipt.KernLogURL + `| grep netfilter`)
@@ -155,7 +155,7 @@ func GetLogs(w http.ResponseWriter, req *http.Request) {
 }
 
 func Reset(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req, true)
+	keyAuthentication := checkKey(req, true, "Reset")
 	if keyAuthentication {
 		//获取日志
 		ipt.ResetIPWhitelist()
@@ -166,12 +166,26 @@ func Reset(w http.ResponseWriter, req *http.Request) {
 }
 
 func Vnstat(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req, true)
-	param := req.URL.Query().Get("param")
+	keyAuthentication := checkKey(req, true, "Vnstat")
+	param := strings.TrimSpace(req.URL.Query().Get("param"))
 	if keyAuthentication {
 		//获取日志
-		stat := utils.ExecCommand("vnstat " + param)
-		fmt.Fprintf(w, stat)
+		// 需要检查参数的合法性
+		var validParams = []string{"5", "h", "hours", "hoursgraph", "hg", "d", "days", "m", "months", "y", "years", "t", "top"}
+		var valid bool
+		for _, p := range validParams {
+			if param == p {
+				valid = true
+				break
+			}
+		}
+		if valid {
+			stat := utils.ExecCommand("vnstat " + param)
+			fmt.Fprintf(w, stat)
+		} else {
+			fmt.Fprintf(w, "无效参数: "+param)
+		}
+
 	} else {
 		fmt.Fprintf(w, "key错误")
 	}
@@ -180,7 +194,7 @@ func Vnstat(w http.ResponseWriter, req *http.Request) {
 //只输出ip和探测数量
 
 func GetRecords(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req, true)
+	keyAuthentication := checkKey(req, true, "GetRecords")
 	var whitelistStrBuilder, nowhitelistStrBuilder strings.Builder
 	if keyAuthentication {
 		for ip, count := range ipt.RecordedIPs {
