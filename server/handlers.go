@@ -171,7 +171,7 @@ func Vnstat(w http.ResponseWriter, req *http.Request) {
 	if keyAuthentication {
 		//获取日志
 		// 需要检查参数的合法性
-		var validParams = []string{"5", "h", "hours", "hoursgraph", "hg", "d", "days", "m", "months", "y", "years", "t", "top"}
+		var validParams = []string{"-5", "-h", "--hours", "--hoursgraph", "-hg", "-d", "--days", "-m", "--months", "-y", "--years", "-t", "--top", ""}
 		var valid bool
 		for _, p := range validParams {
 			if param == p {

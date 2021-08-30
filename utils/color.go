@@ -7,5 +7,5 @@ var (
 	CmdColorBlue   = color.New(color.FgBlue)
 	CmdColorRed    = color.New(color.FgRed)
 	CmdColorCyan   = color.New(color.FgCyan)
-	CmdColorYellow = color.New(color.FgHiYellow)
+	CmdColorYellow = color.New(color.FgYellow)
 )
