@@ -112,6 +112,9 @@ func ReadIPLogs() {
 					}
 				} else if isTriggerLog {
 					boldBlue.Printf("%s SYN速率触发 IP:%s SPT:%s DPT:%s TTL:%s [%s packets in %s seconds]\n", time.Now().Format("2006-01-02 15:04:05"), logRecord.SrcIp, logRecord.SrcPort, logRecord.DstPort, logRecord.TTL, pStr, tStr)
+					log.Printf("SYN速率触发,已为%s自动添加ip白名单\n", remoteIp)
+					WhiteIPs[remoteIp] = true
+					AddIPWhitelist(remoteIp)
 				}
 				logRecordPool.Put(logRecord)
 			}
