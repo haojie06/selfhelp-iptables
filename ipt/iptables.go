@@ -20,7 +20,7 @@ var (
 	denyAction  = "DROP"
 
 	// 包速率触发器 当前只应用于特定端口
-	pStr, tStr string
+	pStr, tStr   string
 	validTrigger bool
 )
 
@@ -78,6 +78,8 @@ func InitIPtables(isreset bool) {
 			pStr, tStr, validTrigger = parseTrigger(rateTrigger)
 			if !validTrigger {
 				os.Exit(1)
+			} else {
+				fmt.Printf("SYN速率激活模式 %s packets / %s secondes\n", pStr, tStr)
 			}
 		}
 		for _, port := range pPorts {
