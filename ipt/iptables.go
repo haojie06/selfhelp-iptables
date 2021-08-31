@@ -88,8 +88,8 @@ func InitIPtables(isreset bool) {
 			utils.ExecCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + port + ` -j LOG --log-prefix='[netfilter]' --log-level 4`)
 			// 端口连接速率触发器 syn速率触发解锁
 			if validTrigger {
-				utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -m state --state NEW -m recent --name ` + port + `TRIGGER --set`)
-				utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -m state --state NEW -m recent --name ` + port + `TRIGGER --rcheck --seconds ` + tStr + ` --hitcount ` + pStr + ` -j  LOG --log-prefix='[netfilter-trigger]' --log-level 4`)
+				utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -m recent --name ` + port + `TRIGGER --set`)
+				utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -m recent --name ` + port + `TRIGGER --rcheck --seconds ` + tStr + ` --hitcount ` + pStr + ` -j  LOG --log-prefix='[netfilter-trigger]' --log-level 4`)
 			}
 			utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -j ` + denyAction)
 			utils.ExecCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + port + ` -j ` + denyAction)
