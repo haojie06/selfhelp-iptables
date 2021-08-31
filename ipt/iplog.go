@@ -104,13 +104,13 @@ func ReadIPLogs() {
 					boldRed.Printf("%s 端口被探测 IP:%s SPT:%s DPT:%s TTL:%s COUNT:%s\n", time.Now().Format("2006-01-02 15:04:05"), logRecord.SrcIp, logRecord.SrcPort, logRecord.DstPort, logRecord.TTL, strconv.Itoa(RecordedIPs[remoteIp]))
 					// 如果开启了自动添加，当失败次数大于设置的时候 添加ip白名单
 					threshold := config.GetConfig().AddThreshold
-					//速率触发和计数触发二选一
+					//速率触发和计数触发二选一 优先速率触发
 					if threshold != 0 && RecordedIPs[remoteIp] > threshold && !WhiteIPs[remoteIp] && config.GetConfig().RateTrigger == "" {
 						log.Printf("失败次数超过%d次,已为%s自动添加ip白名单\n", threshold, remoteIp)
 						WhiteIPs[remoteIp] = true
 						AddIPWhitelist(remoteIp)
 					}
-				} else if isTriggerLog {
+				} else if isTriggerLog && !WhiteIPs[remoteIp] {
 					boldBlue.Printf("%s SYN速率触发 IP:%s SPT:%s DPT:%s TTL:%s [%s packets in %s seconds]\n", time.Now().Format("2006-01-02 15:04:05"), logRecord.SrcIp, logRecord.SrcPort, logRecord.DstPort, logRecord.TTL, pStr, tStr)
 					log.Printf("SYN速率触发,已为%s自动添加ip白名单\n", remoteIp)
 					WhiteIPs[remoteIp] = true
