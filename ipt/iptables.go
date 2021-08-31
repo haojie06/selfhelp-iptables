@@ -18,6 +18,10 @@ var (
 	KernLogURL  = ""
 	RecordedIPs = make(map[string]int)
 	denyAction  = "DROP"
+
+	// 包速率触发器 当前只应用于特定端口
+	pStr, tStr string
+	validTrigger bool
 )
 
 func InitIPtables(isreset bool) {
@@ -69,11 +73,12 @@ func InitIPtables(isreset bool) {
 			fmt.Println("指定端口,拒绝下列端口的连接: " + cfg.ProtectPorts + "\n响应方式: " + denyAction + "\n白名单端口: " + cfg.WhitePorts)
 		}
 		pPorts := strings.Split(cfg.ProtectPorts, ",")
-		// 包速率触发器 当前只应用于特定端口
-		var pStr, tStr string
-		var validTrigger bool
+
 		if rateTrigger != "" {
 			pStr, tStr, validTrigger = parseTrigger(rateTrigger)
+			if !validTrigger {
+				os.Exit(1)
+			}
 		}
 		for _, port := range pPorts {
 			// 非白名单ip访问指定端口的时候记录日志

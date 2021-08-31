@@ -95,8 +95,8 @@ func ReadIPLogs() {
 						}
 					}
 				}
-				red := color.New(color.FgRed)
-				boldRed := red.Add(color.Bold)
+				boldRed := color.New(color.FgRed).Add(color.Bold)
+				boldBlue := color.New(color.FgBlue).Add(color.Bold)
 				remoteIp := logRecord.SrcIp
 				if isDetectLog {
 					// 新增记录为探测记录时
@@ -111,7 +111,7 @@ func ReadIPLogs() {
 						AddIPWhitelist(remoteIp)
 					}
 				} else if isTriggerLog {
-					boldRed.Printf("%s SYN速率触发 IP:%s SPT:%s DPT:%s TTL:%s COUNT:%s\n", time.Now().Format("2006-01-02 15:04:05"), logRecord.SrcIp, logRecord.SrcPort, logRecord.DstPort, logRecord.TTL, strconv.Itoa(RecordedIPs[remoteIp]))
+					boldBlue.Printf("%s SYN速率触发 IP:%s SPT:%s DPT:%s TTL:%s [%s packets in %s seconds]\n", time.Now().Format("2006-01-02 15:04:05"), logRecord.SrcIp, logRecord.SrcPort, logRecord.DstPort, logRecord.TTL, pStr, tStr)
 				}
 				logRecordPool.Put(logRecord)
 			}
