@@ -69,7 +69,9 @@ func ReadIPLogs() {
 				time.Sleep(time.Second)
 				continue
 			}
-			if strings.Contains(line.Text, "[netfilter]") {
+			isDetectLog := strings.Contains(line.Text, "[netfilter]")
+			isTriggerLog := strings.Contains(line.Text, "[netfilter-trigger]")
+			if isDetectLog || isTriggerLog {
 				fields := strings.Fields(line.Text)
 				logRecord := logRecordPool.Get().(*Record)
 				for _, field := range fields {
@@ -96,23 +98,28 @@ func ReadIPLogs() {
 				red := color.New(color.FgRed)
 				boldRed := red.Add(color.Bold)
 				remoteIp := logRecord.SrcIp
-				RecordIP(remoteIp)
-				boldRed.Printf("%s 端口被探测 IP:%s SPT:%s DPT:%s TTL:%s COUNT:%s\n", time.Now().Format("2006-01-02 15:04:05"), logRecord.SrcIp, logRecord.SrcPort, logRecord.DstPort, logRecord.TTL, strconv.Itoa(RecordedIPs[remoteIp]))
-				logRecordPool.Put(logRecord)
-				// 如果开启了自动添加，当失败次数大于设置的时候 添加ip白名单
-				threshold := config.GetConfig().AddThreshold
-				if threshold != 0 && RecordedIPs[remoteIp] > threshold && !WhiteIPs[remoteIp] {
-					log.Printf("失败次数超过%d次,已为%s自动添加ip白名单\n", threshold, remoteIp)
-					WhiteIPs[remoteIp] = true
-					AddIPWhitelist(remoteIp)
+				if isDetectLog {
+					// 新增记录为探测记录时
+					RecordIP(remoteIp)
+					boldRed.Printf("%s 端口被探测 IP:%s SPT:%s DPT:%s TTL:%s COUNT:%s\n", time.Now().Format("2006-01-02 15:04:05"), logRecord.SrcIp, logRecord.SrcPort, logRecord.DstPort, logRecord.TTL, strconv.Itoa(RecordedIPs[remoteIp]))
+					// 如果开启了自动添加，当失败次数大于设置的时候 添加ip白名单
+					threshold := config.GetConfig().AddThreshold
+					//TODO 速率触发和计数触发二选一
+					if threshold != 0 && RecordedIPs[remoteIp] > threshold && !WhiteIPs[remoteIp] && config.GetConfig().RateTrigger == "" {
+						log.Printf("失败次数超过%d次,已为%s自动添加ip白名单\n", threshold, remoteIp)
+						WhiteIPs[remoteIp] = true
+						AddIPWhitelist(remoteIp)
+					}
+				} else if isTriggerLog {
+					boldRed.Printf("%s SYN速率触发 IP:%s SPT:%s DPT:%s TTL:%s COUNT:%s\n", time.Now().Format("2006-01-02 15:04:05"), logRecord.SrcIp, logRecord.SrcPort, logRecord.DstPort, logRecord.TTL, strconv.Itoa(RecordedIPs[remoteIp]))
 				}
+				logRecordPool.Put(logRecord)
 			}
 		}
 	} else {
 		utils.CmdColorYellow.Println("找不到日志文件,无法实时显示探测ip")
 	}
 }
-
 
 // 记录探测ip
 func RecordIP(ip string) {

@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"selfhelp-iptables-whitelist/config"
 	"selfhelp-iptables-whitelist/utils"
+	"strconv"
 	"strings"
 	"syscall"
 )
@@ -23,6 +24,7 @@ func InitIPtables(isreset bool) {
 	//便于管理，并且避免扰乱之前的规则，这里采取新建一条链的方案
 	cfg := config.GetConfig()
 	reject := cfg.Reject
+	rateTrigger := cfg.RateTrigger
 	// 对于拦截的端口的请求，默认直接丢包, 可选择返回拒绝连接的icmp
 	if reject {
 		denyAction = "REJECT"
@@ -67,10 +69,21 @@ func InitIPtables(isreset bool) {
 			fmt.Println("指定端口,拒绝下列端口的连接: " + cfg.ProtectPorts + "\n响应方式: " + denyAction + "\n白名单端口: " + cfg.WhitePorts)
 		}
 		pPorts := strings.Split(cfg.ProtectPorts, ",")
+		// 包速率触发器 当前只应用于特定端口
+		var pStr, tStr string
+		var validTrigger bool
+		if rateTrigger != "" {
+			pStr, tStr, validTrigger = parseTrigger(rateTrigger)
+		}
 		for _, port := range pPorts {
 			// 非白名单ip访问指定端口的时候记录日志
 			utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -j LOG --log-prefix='[netfilter]' --log-level 4`)
 			utils.ExecCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + port + ` -j LOG --log-prefix='[netfilter]' --log-level 4`)
+			// 端口连接速率触发器 syn速率触发解锁
+			if validTrigger {
+				utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -m state --state NEW -m recent --name ` + port + `TRIGGER --set`)
+				utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -m state --state NEW -m recent --name ` + port + `TRIGGER --rcheck --seconds ` + tStr + ` --hitcount ` + pStr + ` -j  LOG --log-prefix='[netfilter-trigger]' --log-level 4`)
+			}
 			utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -j ` + denyAction)
 			utils.ExecCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + port + ` -j ` + denyAction)
 		}
@@ -139,4 +152,24 @@ func ResetIPWhitelist() {
 	WhiteIPs = make(map[string]bool)
 	//blackIPs = make(map[string]bool) 黑名单不重置
 	RecordedIPs = make(map[string]int)
+}
+
+func parseTrigger(triggerStr string) (pStr string, tStr string, valid bool) {
+	valid = true
+	ts := strings.Split(triggerStr, "/")
+	if len(ts) != 2 {
+		fmt.Println("错误的trigger参数 请使用[packet num]/[seconds]")
+		valid = false
+	} else {
+		_, err1 := strconv.Atoi(ts[0])
+		_, err2 := strconv.Atoi(ts[1])
+		if err1 != nil || err2 != nil {
+			fmt.Println("错误的trigger参数")
+			valid = false
+		} else {
+			pStr = ts[0]
+			tStr = ts[1]
+		}
+	}
+	return
 }

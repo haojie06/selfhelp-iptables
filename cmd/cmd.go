@@ -20,6 +20,7 @@ var (
 	listenPort      string
 	protectPorts    string
 	whitePorts      string
+	rateTrigger     string // 包速率触发器
 	reject          bool
 	rootCmd         = &cobra.Command{
 		Use:   "selfhelp-iptables-whitelist",
@@ -67,6 +68,7 @@ Github: https://github.com/aoyouer/selfhelp-iptables-whitelist
 					ProtectPorts: protectPorts,
 					WhitePorts:   whitePorts,
 					Reject:       reject,
+					RateTrigger:  rateTrigger,
 				})
 				// 启动程序
 				utils.CmdColorBlue.Println("开始运行iptables自助白名单")
@@ -106,5 +108,6 @@ func init() {
 	startCmd.Flags().IntVarP(&addThreshold, "threhold", "t", 8, "Auto add whitelist after how many failed connections")
 	startCmd.Flags().StringVarP(&autoReset, "autoreset", "r", "", "Auto reset all records options: hh(half hour) h(hour) hd(half day) d(day) w(week)")
 	startCmd.Flags().BoolVarP(&reject, "reject", "d", false, "Send icmp packet after blocking")
+	startCmd.Flags().StringVar(&rateTrigger, "trigger", "", "[Experimental] Add whitelist when syn packet rate exceeds threshold. eg: 10/3 means 10 syn packets in three seconds")
 	rootCmd.AddCommand(startCmd)
 }

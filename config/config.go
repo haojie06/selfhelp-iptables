@@ -9,6 +9,7 @@ type Config struct {
 	ProtectPorts string
 	WhitePorts   string
 	Reject       bool // 不显示指明Reject则直接drop
+	RateTrigger  string
 }
 
 var config *Config
