@@ -58,12 +58,27 @@ func HelloServer(w http.ResponseWriter, req *http.Request) {
 
 func AddWhitelist(w http.ResponseWriter, req *http.Request) {
 	keyAuthentication := checkKey(req, false, "AddWhitelist")
-	remoteIP := strings.Split(req.RemoteAddr, ":")[0]
+	var remoteIP string
+	reverseSupport := config.GetConfig().ReverseProxySupport
+	if ips := req.Header.Get("X-Real-Ip"); ips != "" && reverseSupport  {
+		remoteIP = ips
+	} else if ips := req.Header.Get("X-Forwarded-For"); ips != "" && reverseSupport {
+		remoteIP = strings.Split(ips, ",")[0]
+	} else {
+		remoteIP = strings.Split(req.RemoteAddr, ":")[0]
+	}
+	remoteIP = strings.TrimSpace(remoteIP)
+	// 需要对ip进行检查,
 	if keyAuthentication {
-		ipt.AddIPWhitelist(remoteIP)
-		utils.CmdColorGreen.Println("添加ip白名单 " + remoteIP)
-		fmt.Fprintf(w, "添加ip白名单:"+remoteIP)
-		ipt.WhiteIPs[remoteIP] = true
+		if len(strings.Split(remoteIP, ",")) != 1 {
+			ipt.AddIPWhitelist(remoteIP)
+			utils.CmdColorGreen.Println("添加ip白名单 " + remoteIP)
+			fmt.Fprintf(w, "添加ip白名单:"+remoteIP)
+			ipt.WhiteIPs[remoteIP] = true
+		} else {
+			fmt.Fprintf(w, "错误的头部,尝试添加多个ip")
+		}
+
 	} else {
 		fmt.Fprintf(w, "key错误")
 	}

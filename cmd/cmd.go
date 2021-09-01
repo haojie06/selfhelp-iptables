@@ -13,16 +13,17 @@ import (
 )
 
 var (
-	addThreshold    int
-	autoReset       string // 自动重置
-	adminKeySetting string
-	userKeySetting  string
-	listenPort      string
-	protectPorts    string
-	whitePorts      string
-	rateTrigger     string // 包速率触发器
-	reject          bool
-	rootCmd         = &cobra.Command{
+	addThreshold        int
+	autoReset           string // 自动重置
+	adminKeySetting     string
+	userKeySetting      string
+	listenPort          string
+	protectPorts        string
+	whitePorts          string
+	rateTrigger         string // 包速率触发器
+	reject              bool
+	reverseProxySupport bool
+	rootCmd             = &cobra.Command{
 		Use:   "selfhelp-iptables-whitelist",
 		Short: "Selfhelp iptables whitelist is a tool controlling iptables through http api and cmdline.",
 		Long: `Selfhelp iptables whitelist 是一个通过http api和命令行控制iptables的工具
@@ -69,9 +70,13 @@ Github: https://github.com/aoyouer/selfhelp-iptables-whitelist
 					WhitePorts:   whitePorts,
 					Reject:       reject,
 					RateTrigger:  rateTrigger,
+					ReverseProxySupport: reverseProxySupport,
 				})
 				// 启动程序
 				utils.CmdColorBlue.Println("开始运行iptables自助白名单")
+				if reverseProxySupport {
+					utils.CmdColorBlue.Println("开启反向代理支持")
+				}
 				ipt.FlushIPtables()
 				startCron()
 				color.Set(color.FgCyan, color.Bold)
@@ -109,5 +114,6 @@ func init() {
 	startCmd.Flags().StringVarP(&autoReset, "autoreset", "r", "", "Auto reset all records options: hh(half hour) h(hour) hd(half day) d(day) w(week)")
 	startCmd.Flags().BoolVarP(&reject, "reject", "d", false, "Send icmp packet after blocking")
 	startCmd.Flags().StringVar(&rateTrigger, "trigger", "", "[Experimental] Add whitelist when syn packet rate exceeds threshold. eg: 10/3 means 10 syn packets in three seconds")
+	startCmd.Flags().BoolVar(&reverseProxySupport,"reverse",false,"Enable reverse proxy support")
 	rootCmd.AddCommand(startCmd)
 }
