@@ -189,9 +189,6 @@ func GetWhitelistData() (whitelistRecords []WhitelistRecord) {
 		outputRaw := utils.ExecCommand("iptables -vnL BANDWIDTH_OUT | grep " + wip)
 		inField := strings.Fields(inputRaw)
 		outField := strings.Fields(outputRaw)
-		fmt.Println(inField)
-		fmt.Println(len(strings.Fields(inputRaw)))
-		fmt.Println(outField)
 		wr.IP = wip
 		if len(inField) == 9 {
 			wr.PacketsIn = inField[0]
