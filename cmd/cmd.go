@@ -73,13 +73,13 @@ Github: https://github.com/aoyouer/selfhelp-iptables-whitelist
 					ReverseProxySupport: reverseProxySupport,
 				})
 				// 启动程序
-				utils.CmdColorBlue.Println("开始运行iptables自助白名单")
+				color.Set(color.FgCyan, color.Bold)
+				fmt.Println("开始运行iptables自助白名单")
 				if reverseProxySupport {
-					utils.CmdColorBlue.Println("开启反向代理支持")
+					fmt.Println("开启反向代理支持")
 				}
 				ipt.FlushIPtables()
 				startCron()
-				color.Set(color.FgCyan, color.Bold)
 				utils.CheckCommandExists("iptables")
 				ipt.InitIPtables(false)
 				// 开启一个协程实时读取 内核日志 过滤出尝试访问端口的ip
