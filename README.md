@@ -5,7 +5,7 @@
 只在debian/ubuntu上测试过，centos要用的话请`systemctl stop firewalld`，仅使用iptables。
 
 ```bash
-wget https://github.com/aoyouer/selfhelp-iptables-whitelist/releases/download/2.0/selfhelp-iptables-whitelist
+wget https://github.com/aoyouer/selfhelp-iptables-whitelist/releases/download/2.3.2/selfhelp-iptables-whitelist
 chmod +x selfhelp-iptables-whitelist
 # 查看帮助
 ./selfhelp-iptables-whitelist help
