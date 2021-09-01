@@ -1,6 +1,6 @@
 # selfhelp-iptables-whitelist 通过http api 添加iptables白名单
 
-自助添加iptables白名单的工具，可以通过http请求来向iptables添加白名单，防止恶意探测。
+自助添加iptables白名单的工具，可以通过http请求来向iptables添加白名单，防止不怀好意之人的端口扫描和恶意探测。
 
 只在debian/ubuntu上测试过，centos要用的话请`systemctl stop firewalld`，仅使用iptables。
 
@@ -105,27 +105,27 @@ systemctl restart rsyslog
 - remove 移除添加的ip
 - record 列出 探测ip以及次数记录
 - reset 重置所有记录 包括连接记录和白名单
-几种请求
+几种请求 (不通过浏览器，直接使用curl也可以)
 
 - 添加白名单
 
-  `http://example.com:8080/api/add?key=[你设置的key]` 程序会获取访问者的ip，并添加到iptables白名单中。
+  `http://example.com:8080/api/add?key=[你设置的userkey]` 程序会获取访问者的ip，并添加到iptables白名单中。
 
 - 列出当前白名单
 
-  `http://example.com:8080/api/list?key=[你设置的key]`
+  `http://example.com:8080/api/list?key=[你设置的adminkey]`
 
 - 删除白名单
 
-  `http://example.com:8080/api/remove/[要删除的ip]?key=[你设置的key]`
+  `http://example.com:8080/api/remove/[要删除的ip]?key=[你设置的adminkey]`
 
 - 查看探测记录
 
-  `http://example.com:8080/api/log?key=[你设置的key]`
+  `http://example.com:8080/api/log?key=[你设置的adminkey]`
 
 - 查看探测计数
 
-   `http://example.com:8080/api/record?key=[你设置的key]`
+   `http://example.com:8080/api/record?key=[你设置的adminkey]`
 
 退出程序后，程序会清空添加的iptables规则链（**程序自己新建了一条链，不会影响之前的链**），如果自动清理失败，可以采取手动清理的方式。
 
