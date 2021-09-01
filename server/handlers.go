@@ -28,14 +28,14 @@ func checkKey(req *http.Request, privilege bool, apiName string) (result bool) {
 					utils.CmdColorGreen.Printf("%s IP: %s 尝试请求API: %s 已允许\n", now, remoteIP, apiName)
 				} else {
 					result = false
-					utils.CmdColorYellow.Printf("%s IP: %s 尝试请求API: %s 已拒绝 错误的KEY: %s\n", now, remoteIP, apiName, k)
+					utils.CmdColorRed.Printf("%s IP: %s 尝试请求API: %s 已拒绝 错误的KEY: %s\n", now, remoteIP, apiName, k)
 				}
 			} else {
 				if k == config.GetConfig().UserKey || k == config.GetConfig().AdminKey {
 					utils.CmdColorGreen.Printf("%s IP: %s 尝试请求API: %s 已允许\n", now, remoteIP, apiName)
 					result = true
 				} else {
-					utils.CmdColorYellow.Printf("%s IP: %s 尝试请求API: %s 已拒绝 错误的KEY: %s\n", now, remoteIP, apiName, k)
+					utils.CmdColorRed.Printf("%s IP: %s 尝试请求API: %s 已拒绝 错误的KEY: %s\n", now, remoteIP, apiName, k)
 					result = false
 				}
 			}
@@ -70,13 +70,13 @@ func AddWhitelist(w http.ResponseWriter, req *http.Request) {
 	remoteIP = strings.TrimSpace(remoteIP)
 	// 需要对ip进行检查,
 	if keyAuthentication {
-		if len(strings.Split(remoteIP, ",")) != 1 {
+		if len(strings.Split(remoteIP, ",")) == 1 {
 			ipt.AddIPWhitelist(remoteIP)
 			utils.CmdColorGreen.Println("添加ip白名单 " + remoteIP)
 			fmt.Fprintf(w, "添加ip白名单:"+remoteIP)
 			ipt.WhiteIPs[remoteIP] = true
 		} else {
-			fmt.Fprintf(w, "错误的头部,尝试添加多个ip")
+			fmt.Fprintf(w, "错误的头部,尝试添加多个ip: " + remoteIP)
 		}
 
 	} else {
