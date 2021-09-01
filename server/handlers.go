@@ -20,28 +20,28 @@ func checkKey(req *http.Request, privilege bool, apiName string) (result bool) {
 		key := req.Form["key"]
 		remoteIP := strings.Split(req.RemoteAddr, ":")[0]
 		now := time.Now().Format("2006-01-02 15:04:05")
-		//golang没有三元运算符
 		if len(key) > 0 {
+			k := strings.TrimSpace(key[0])
 			if privilege {
-				if key[0] == config.GetConfig().AdminKey {
-					utils.CmdColorGreen.Printf("%s IP: %s 尝试请求API: %s 已允许\n", now, remoteIP, apiName)
+				if k == config.GetConfig().AdminKey {
 					result = true
+					utils.CmdColorGreen.Printf("%s IP: %s 尝试请求API: %s 已允许\n", now, remoteIP, apiName)
 				} else {
 					result = false
-					utils.CmdColorYellow.Printf("%s IP: %s 尝试请求API: %s 已拒绝 错误的KEY: %s\n", now, remoteIP, apiName, key[0])
+					utils.CmdColorYellow.Printf("%s IP: %s 尝试请求API: %s 已拒绝 错误的KEY: %s\n", now, remoteIP, apiName, k)
 				}
 			} else {
-				if key[0] == config.GetConfig().UserKey && key[0] == config.GetConfig().AdminKey {
+				if k == config.GetConfig().UserKey || k == config.GetConfig().AdminKey {
 					utils.CmdColorGreen.Printf("%s IP: %s 尝试请求API: %s 已允许\n", now, remoteIP, apiName)
 					result = true
 				} else {
-					utils.CmdColorYellow.Printf("%s IP: %s 尝试请求API: %s 已拒绝 错误的KEY: %s\n", now, remoteIP, apiName, key[0])
+					utils.CmdColorYellow.Printf("%s IP: %s 尝试请求API: %s 已拒绝 错误的KEY: %s\n", now, remoteIP, apiName, k)
 					result = false
 				}
 			}
 		} else {
 			color.Set(color.FgRed)
-			utils.CmdColorYellow.Printf("%s IP: %s 尝试请求API: %s 已拒绝 未设置KEY\n", now, remoteIP, apiName, key[0])
+			utils.CmdColorYellow.Printf("%s IP: %s 尝试请求API: %s 已拒绝 未设置KEY\n", now, remoteIP, apiName)
 			color.Unset()
 			result = false
 		}
@@ -60,7 +60,7 @@ func AddWhitelist(w http.ResponseWriter, req *http.Request) {
 	keyAuthentication := checkKey(req, false, "AddWhitelist")
 	var remoteIP string
 	reverseSupport := config.GetConfig().ReverseProxySupport
-	if ips := req.Header.Get("X-Real-Ip"); ips != "" && reverseSupport  {
+	if ips := req.Header.Get("X-Real-Ip"); ips != "" && reverseSupport {
 		remoteIP = ips
 	} else if ips := req.Header.Get("X-Forwarded-For"); ips != "" && reverseSupport {
 		remoteIP = strings.Split(ips, ",")[0]
