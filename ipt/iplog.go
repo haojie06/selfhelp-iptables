@@ -27,6 +27,7 @@ type Record struct {
 	Interface string
 }
 
+
 func ReadIPLogs() {
 	var logRecordPool = sync.Pool{
 		New: func() interface{} {

@@ -15,7 +15,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func getClientIP(req *http.Request) (remoteIP string){
+func getClientIP(req *http.Request) (remoteIP string) {
 	reverseSupport := config.GetConfig().ReverseProxySupport
 	if ips := req.Header.Get("X-Real-Ip"); ips != "" && reverseSupport {
 		remoteIP = ips
@@ -80,7 +80,7 @@ func AddWhitelist(w http.ResponseWriter, req *http.Request) {
 			fmt.Fprintf(w, "添加ip白名单:"+remoteIP)
 			ipt.WhiteIPs[remoteIP] = true
 		} else {
-			fmt.Fprintf(w, "错误的头部,尝试添加多个ip: " + remoteIP)
+			fmt.Fprintf(w, "错误的头部,尝试添加多个ip: "+remoteIP)
 		}
 
 	} else {
@@ -138,9 +138,11 @@ func ShowWhitelist(w http.ResponseWriter, req *http.Request) {
 	keyAuthentication := checkKey(req, true, "ShowWhitelist")
 	if keyAuthentication {
 		//获取ips
-		var ips string
-		for ip, _ := range ipt.WhiteIPs {
-			ips = fmt.Sprintln(ips, ip)
+		whiteIPRecords := ipt.GetWhitelistData()
+		ips := fmt.Sprintf("当前白名单中共有%d个ip\n", len(whiteIPRecords))
+		ips += fmt.Sprintf("%-15s %-9s %-6s %-9s %-6s\n", "IP", "Download", "DPkts", "Upload", "UPkts")
+		for _, ipr := range whiteIPRecords {
+			ips += fmt.Sprintf("%-15s %-9s %-6s %-9s %-6s\n", ipr.IP, ipr.BandwidthOut, ipr.PacketsOut, ipr.BandwidthIn, ipr.PacketsIn)
 		}
 		fmt.Fprintf(w, ips)
 	} else {
@@ -239,5 +241,3 @@ func GetRecords(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "key错误")
 	}
 }
-
-

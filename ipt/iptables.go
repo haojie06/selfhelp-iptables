@@ -12,6 +12,14 @@ import (
 	"syscall"
 )
 
+type WhitelistRecord struct {
+	IP           string
+	PacketsOut   string
+	PacketsIn    string
+	BandwidthOut string
+	BandwidthIn  string
+}
+
 var (
 	WhiteIPs    = make(map[string]bool)
 	BlackIPs    = make(map[string]bool)
@@ -35,6 +43,8 @@ func InitIPtables(isreset bool) {
 	}
 	utils.ExecCommand(`iptables -N SELF_BLACKLIST`)
 	utils.ExecCommand(`iptables -N SELF_WHITELIST`)
+	// 用于统计上传到每个ip的流量,即每ip从服务器的下载流量
+	utils.ExecCommand(`iptables -N BANDWIDTH_OUT`)
 	//开发时把自己的ip加进去，避免出问题
 	// utils.ExecCommand(`iptables -A SELF_WHITELIST -s ` + "1.1.1.1" + ` -j ACCEPT`)
 	//允许本地回环连接
@@ -98,6 +108,8 @@ func InitIPtables(isreset bool) {
 	//添加引用 入流量会到自定义的表进行处理
 	utils.ExecCommand(`iptables -A INPUT -j SELF_BLACKLIST`)
 	utils.ExecCommand(`iptables -A INPUT -j SELF_WHITELIST`)
+	// 流量统计需要在OUTPUT上增加规则,获取每ip下载流量
+	utils.ExecCommand(`iptables -A OUTPUT -j BANDWIDTH_OUT`)
 }
 
 func removeChainAfterExit() {
@@ -111,10 +123,14 @@ func removeChainAfterExit() {
 		utils.CmdColorYellow.Println("退出程序")
 		utils.ExecCommand(`iptables -D INPUT -j SELF_BLACKLIST`)
 		utils.ExecCommand(`iptables -D INPUT -j SELF_WHITELIST`)
+
+		utils.ExecCommand(`iptables -D OUTPUT -j BANDWIDTH_OUT`)
 		utils.ExecCommand(`iptables -F SELF_BLACKLIST`)
 		utils.ExecCommand(`iptables -F SELF_WHITELIST`)
+		utils.ExecCommand(`iptables -F BANDWIDTH_OUT`)
 		utils.ExecCommand(`iptables -X SELF_BLACKLIST`)
 		utils.ExecCommand(`iptables -X SELF_WHITELIST`)
+		utils.ExecCommand(`iptables -X BANDWIDTH_OUT`)
 		os.Exit(0)
 	}()
 }
@@ -122,24 +138,25 @@ func removeChainAfterExit() {
 // 清空自定义表
 func FlushIPtables() {
 	utils.ExecCommandWithoutOutput(`iptables -D INPUT -j SELF_WHITELIST`)
-	utils.ExecCommandWithoutOutput(`iptables -D INPUT -j SELF_WHITELIST`)
-	utils.ExecCommandWithoutOutput(`iptables -D INPUT -j SELF_WHITELIST`)
 	utils.ExecCommandWithoutOutput(`iptables -F SELF_WHITELIST`)
 	utils.ExecCommandWithoutOutput(`iptables -X SELF_WHITELIST`)
-	utils.ExecCommandWithoutOutput(`iptables -X SELF_WHITELIST`)
-	utils.ExecCommandWithoutOutput(`iptables -D INPUT -j SELF_BLACKLIST`)
-	utils.ExecCommandWithoutOutput(`iptables -D INPUT -j SELF_BLACKLIST`)
+
 	utils.ExecCommandWithoutOutput(`iptables -D INPUT -j SELF_BLACKLIST`)
 	utils.ExecCommandWithoutOutput(`iptables -F SELF_BLACKLIST`)
 	utils.ExecCommandWithoutOutput(`iptables -X SELF_BLACKLIST`)
-	utils.ExecCommandWithoutOutput(`iptables -X SELF_BLACKLIST`)
+
+	utils.ExecCommandWithoutOutput(`iptables -D OUTPUT -j BANDWIDTH_OUT`)
+	utils.ExecCommandWithoutOutput(`iptables -F BANDWIDTH_OUT`)
+	utils.ExecCommandWithoutOutput(`iptables -X BANDWIDTH_OUT`)
 }
 
 func AddIPWhitelist(ip string) string {
+	utils.ExecCommand(`iptables -I BANDWIDTH_OUT -d ` + ip + ` -j RETURN`)
 	return utils.ExecCommand(`iptables -I SELF_WHITELIST -s ` + ip + ` -j ACCEPT`)
 }
 
 func DelIPWhitelist(ip string) string {
+	utils.ExecCommand(`iptables -D BANDWIDTH_OUT -d ` + ip + ` -j RETURN`)
 	return utils.ExecCommand(`iptables -D SELF_WHITELIST -s ` + ip + ` -j ACCEPT`)
 }
 
@@ -159,6 +176,34 @@ func ResetIPWhitelist() {
 	WhiteIPs = make(map[string]bool)
 	//blackIPs = make(map[string]bool) 黑名单不重置
 	RecordedIPs = make(map[string]int)
+}
+
+// 生成白名单统计记录的方法 包含白名单中的ip 上传下载的包的数量和流量
+
+func GetWhitelistData() (whitelistRecords []WhitelistRecord) {
+	// 分别获取INPUT和OUTPUT的查询数据,之后过滤出每ip的值
+	// 低性能实现.
+	for wip, _ := range WhiteIPs {
+		wr := new(WhitelistRecord)
+		inputRaw := utils.ExecCommand("iptables -vnL SELF_WHITELIST | grep " + wip)
+		outputRaw := utils.ExecCommand("iptables -vnL BANDWIDTH_OUT | grep " + wip)
+		inField := strings.Fields(inputRaw)
+		outField := strings.Fields(outputRaw)
+		fmt.Println(inField)
+		fmt.Println(len(strings.Fields(inputRaw)))
+		fmt.Println(outField)
+		wr.IP = wip
+		if len(inField) == 9 {
+			wr.PacketsIn = inField[0]
+			wr.BandwidthIn = inField[1]
+		}
+		if len(outField) == 9 {
+			wr.PacketsOut = outField[0]
+			wr.BandwidthOut = outField[1]
+		}
+		whitelistRecords = append(whitelistRecords, *wr)
+	}
+	return
 }
 
 func parseTrigger(triggerStr string) (pStr string, tStr string, valid bool) {

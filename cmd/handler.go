@@ -13,9 +13,11 @@ func cmdlineHandler(cmd string) {
 	// fmt.Println(cmd)
 	switch cmd {
 	case "list":
-		utils.CmdColorGreen.Printf("当前白名单中共有%d个ip\n", len(ipt.WhiteIPs))
-		for ip, _ := range ipt.WhiteIPs {
-			utils.CmdColorCyan.Println(ip)
+		whiteIPRecords := ipt.GetWhitelistData()
+		utils.CmdColorGreen.Printf("当前白名单中共有%d个ip\n", len(whiteIPRecords))
+		utils.CmdColorCyan.Printf("%-15s %-9s %-6s %-9s %-6s\n", "IP", "Download", "DPkts", "Upload", "UPkts")
+		for _, ipr := range whiteIPRecords {
+			utils.CmdColorCyan.Printf("%-15s %-9s %-6s %-9s %-6s\n", ipr.IP, ipr.BandwidthOut, ipr.PacketsOut, ipr.BandwidthIn, ipr.PacketsIn)
 		}
 	case "listb":
 		utils.CmdColorGreen.Printf("当前黑名单中共有%d个ip\n", len(ipt.BlackIPs))
@@ -26,7 +28,7 @@ func cmdlineHandler(cmd string) {
 		var ipNeedToAdd string
 		utils.CmdColorGreen.Println("请输入要添加的ip")
 		fmt.Scanln(&ipNeedToAdd)
-		utils.CmdColorCyan.Println("命令已执行 " +ipt.AddIPWhitelist(ipNeedToAdd))
+		utils.CmdColorCyan.Println("命令已执行 " + ipt.AddIPWhitelist(ipNeedToAdd))
 		ipt.WhiteIPs[ipNeedToAdd] = true
 	case "ban":
 		var ipNeedToBan string
