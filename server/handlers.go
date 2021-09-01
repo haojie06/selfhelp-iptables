@@ -15,10 +15,23 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func getClientIP(req *http.Request) (remoteIP string){
+	reverseSupport := config.GetConfig().ReverseProxySupport
+	if ips := req.Header.Get("X-Real-Ip"); ips != "" && reverseSupport {
+		remoteIP = ips
+	} else if ips := req.Header.Get("X-Forwarded-For"); ips != "" && reverseSupport {
+		remoteIP = strings.Split(ips, ",")[0]
+	} else {
+		remoteIP = strings.Split(req.RemoteAddr, ":")[0]
+	}
+	remoteIP = strings.TrimSpace(remoteIP)
+	return
+}
+
 func checkKey(req *http.Request, privilege bool, apiName string) (result bool) {
 	if err := req.ParseForm(); err == nil {
 		key := req.Form["key"]
-		remoteIP := strings.Split(req.RemoteAddr, ":")[0]
+		remoteIP := getClientIP(req)
 		now := time.Now().Format("2006-01-02 15:04:05")
 		if len(key) > 0 {
 			k := strings.TrimSpace(key[0])
@@ -58,16 +71,7 @@ func HelloServer(w http.ResponseWriter, req *http.Request) {
 
 func AddWhitelist(w http.ResponseWriter, req *http.Request) {
 	keyAuthentication := checkKey(req, false, "AddWhitelist")
-	var remoteIP string
-	reverseSupport := config.GetConfig().ReverseProxySupport
-	if ips := req.Header.Get("X-Real-Ip"); ips != "" && reverseSupport {
-		remoteIP = ips
-	} else if ips := req.Header.Get("X-Forwarded-For"); ips != "" && reverseSupport {
-		remoteIP = strings.Split(ips, ",")[0]
-	} else {
-		remoteIP = strings.Split(req.RemoteAddr, ":")[0]
-	}
-	remoteIP = strings.TrimSpace(remoteIP)
+	remoteIP := getClientIP(req)
 	// 需要对ip进行检查,
 	if keyAuthentication {
 		if len(strings.Split(remoteIP, ",")) == 1 {
@@ -235,3 +239,5 @@ func GetRecords(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "key错误")
 	}
 }
+
+
