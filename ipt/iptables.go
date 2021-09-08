@@ -137,11 +137,12 @@ func removeChainAfterExit() {
 
 		utils.ExecCommand(`iptables -F SELF_BLACKLIST`)
 		utils.ExecCommand(`iptables -F SELF_WHITELIST`)
-		utils.ExecCommand(`iptables -F BANDWIDTH_OUT`)
+		utils.ExecCommand(`iptables -t nat -F BANDWIDTH_OUT`)
+		utils.ExecCommand(`iptables -t nat -F BANDWIDTH_IN`)
 		utils.ExecCommand(`iptables -X SELF_BLACKLIST`)
 		utils.ExecCommand(`iptables -X SELF_WHITELIST`)
-		utils.ExecCommand(`iptables -X BANDWIDTH_OUT`)
-		utils.ExecCommand(`iptables -X BANDWIDTH_IN`)
+		utils.ExecCommand(`iptables -t nat -X BANDWIDTH_OUT`)
+		utils.ExecCommand(`iptables -t nat -X BANDWIDTH_IN`)
 		os.Exit(0)
 	}()
 }
@@ -157,12 +158,12 @@ func FlushIPtables() {
 	utils.ExecCommandWithoutOutput(`iptables -X SELF_BLACKLIST`)
 
 	utils.ExecCommandWithoutOutput(`iptables -t nat -D POSTROUTING -j BANDWIDTH_OUT`)
-	utils.ExecCommandWithoutOutput(`iptables -F BANDWIDTH_OUT`)
-	utils.ExecCommandWithoutOutput(`iptables -X BANDWIDTH_OUT`)
+	utils.ExecCommandWithoutOutput(`iptables -t nat -F BANDWIDTH_OUT`)
+	utils.ExecCommandWithoutOutput(`iptables -t nat -X BANDWIDTH_OUT`)
 
 	utils.ExecCommandWithoutOutput(`iptables -t nat -D PREROUTING -j BANDWIDTH_IN`)
-	utils.ExecCommandWithoutOutput(`iptables -F BANDWIDTH_OUT`)
-	utils.ExecCommandWithoutOutput(`iptables -X BANDWIDTH_OUT`)
+	utils.ExecCommandWithoutOutput(`iptables -t nat -F BANDWIDTH_IN`)
+	utils.ExecCommandWithoutOutput(`iptables -t nat -X BANDWIDTH_IN`)
 }
 
 func AddIPWhitelist(ip string) string {
