@@ -109,9 +109,7 @@ func InitIPtables(isreset bool) {
 	// 发向普通应用的流量进入INPURT
 	utils.ExecCommand(`iptables -I INPUT -j SELF_WHITELIST`)
 	utils.ExecCommand(`iptables -I INPUT -j SELF_BLACKLIST`)
-	// 发向docker的流量会进入FORWARD
-	utils.ExecCommand(`iptables -I FORWARD -j SELF_WHITELIST`)
-	utils.ExecCommand(`iptables -I FORWARD -j SELF_BLACKLIST`)
+
 	// 增加规则,获取每ip下载流量
 	utils.ExecCommand(`iptables -I INPUT -j BANDWIDTH_IN`)
 	// 注意，把这条规则写在后面
@@ -129,9 +127,6 @@ func removeChainAfterExit() {
 		utils.CmdColorYellow.Println("退出程序")
 		utils.ExecCommand(`iptables -D INPUT -j SELF_BLACKLIST`)
 		utils.ExecCommand(`iptables -D INPUT -j SELF_WHITELIST`)
-
-		utils.ExecCommand(`iptables -D FORWARD -j SELF_BLACKLIST`)
-		utils.ExecCommand(`iptables -D FORWARD -j SELF_WHITELIST`)
 
 		utils.ExecCommand(`iptables -D OUTPUT -j BANDWIDTH_OUT`)
 		utils.ExecCommand(`iptables -D INPUT -j BANDWIDTH_IN`)
