@@ -114,7 +114,8 @@ func InitIPtables(isreset bool) {
 	utils.ExecCommand(`iptables -I FORWARD -j SELF_BLACKLIST`)
 	// 增加规则,获取每ip下载流量
 	utils.ExecCommand(`iptables -t nat -I PREROUTING -j BANDWIDTH_IN`)
-	utils.ExecCommand(`iptables -t nat -I POSTROUTING -j BANDWIDTH_OUT`)
+	// 注意，把这条规则写在后面
+	utils.ExecCommand(`iptables -t nat -A POSTROUTING -j BANDWIDTH_OUT`)
 }
 
 func removeChainAfterExit() {
