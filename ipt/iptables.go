@@ -203,7 +203,7 @@ func GetWhitelistData() (whitelistRecords []WhitelistRecord) {
 	// 低性能实现.
 	for wip, _ := range WhiteIPs {
 		wr := new(WhitelistRecord)
-		inputRaw := utils.ExecCommand("iptables -t nat -vnL BANDWIDTH_OUT | grep " + wip)
+		inputRaw := utils.ExecCommand("iptables -t nat -vnL BANDWIDTH_IN | grep " + wip)
 		outputRaw := utils.ExecCommand("iptables -t nat -vnL BANDWIDTH_OUT | grep " + wip)
 		inField := strings.Fields(inputRaw)
 		outField := strings.Fields(outputRaw)
