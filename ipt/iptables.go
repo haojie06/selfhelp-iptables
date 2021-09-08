@@ -45,6 +45,7 @@ func InitIPtables(isreset bool) {
 	utils.ExecCommand(`iptables -N SELF_WHITELIST`)
 	// 用于统计上传到每个ip的流量,即每ip从服务器的下载流量
 	utils.ExecCommand(`iptables -N BANDWIDTH_OUT`)
+	utils.ExecCommand(`iptables -N BANDWIDTH_IN`)
 	//开发时把自己的ip加进去，避免出问题
 	// utils.ExecCommand(`iptables -A SELF_WHITELIST -s ` + "1.1.1.1" + ` -j ACCEPT`)
 	//允许本地回环连接
@@ -105,10 +106,13 @@ func InitIPtables(isreset bool) {
 			utils.ExecCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + port + ` -j ` + denyAction)
 		}
 	}
-	//添加引用 入流量会到自定义的表进行处理
-	utils.ExecCommand(`iptables -A INPUT -j SELF_BLACKLIST`)
-	utils.ExecCommand(`iptables -A INPUT -j SELF_WHITELIST`)
-	// 流量统计需要在OUTPUT上增加规则,获取每ip下载流量
+	// 发向普通应用的流量进入INPURT
+	utils.ExecCommand(`iptables -I INPUT -j SELF_WHITELIST`)
+	utils.ExecCommand(`iptables -I INPUT -j SELF_BLACKLIST`)
+
+	// 增加规则,获取每ip下载流量
+	utils.ExecCommand(`iptables -I INPUT -j BANDWIDTH_IN`)
+	// 注意，把这条规则写在后面
 	utils.ExecCommand(`iptables -A OUTPUT -j BANDWIDTH_OUT`)
 }
 
@@ -125,12 +129,16 @@ func removeChainAfterExit() {
 		utils.ExecCommand(`iptables -D INPUT -j SELF_WHITELIST`)
 
 		utils.ExecCommand(`iptables -D OUTPUT -j BANDWIDTH_OUT`)
+		utils.ExecCommand(`iptables -D INPUT -j BANDWIDTH_IN`)
+
 		utils.ExecCommand(`iptables -F SELF_BLACKLIST`)
 		utils.ExecCommand(`iptables -F SELF_WHITELIST`)
 		utils.ExecCommand(`iptables -F BANDWIDTH_OUT`)
+		utils.ExecCommand(`iptables -F BANDWIDTH_IN`)
 		utils.ExecCommand(`iptables -X SELF_BLACKLIST`)
 		utils.ExecCommand(`iptables -X SELF_WHITELIST`)
 		utils.ExecCommand(`iptables -X BANDWIDTH_OUT`)
+		utils.ExecCommand(`iptables -X BANDWIDTH_IN`)
 		os.Exit(0)
 	}()
 }
@@ -148,15 +156,21 @@ func FlushIPtables() {
 	utils.ExecCommandWithoutOutput(`iptables -D OUTPUT -j BANDWIDTH_OUT`)
 	utils.ExecCommandWithoutOutput(`iptables -F BANDWIDTH_OUT`)
 	utils.ExecCommandWithoutOutput(`iptables -X BANDWIDTH_OUT`)
+
+	utils.ExecCommandWithoutOutput(`iptables -D INPUT -j BANDWIDTH_IN`)
+	utils.ExecCommandWithoutOutput(`iptables -F BANDWIDTH_IN`)
+	utils.ExecCommandWithoutOutput(`iptables -X BANDWIDTH_IN`)
 }
 
 func AddIPWhitelist(ip string) string {
 	utils.ExecCommand(`iptables -I BANDWIDTH_OUT -d ` + ip + ` -j RETURN`)
+	utils.ExecCommand(`iptables -I BANDWIDTH_IN -s ` + ip + ` -j RETURN`)
 	return utils.ExecCommand(`iptables -I SELF_WHITELIST -s ` + ip + ` -j ACCEPT`)
 }
 
 func DelIPWhitelist(ip string) string {
 	utils.ExecCommand(`iptables -D BANDWIDTH_OUT -d ` + ip + ` -j RETURN`)
+	utils.ExecCommand(`iptables -D BANDWIDTH_IN -s ` + ip + ` -j RETURN`)
 	return utils.ExecCommand(`iptables -D SELF_WHITELIST -s ` + ip + ` -j ACCEPT`)
 }
 
@@ -185,7 +199,7 @@ func GetWhitelistData() (whitelistRecords []WhitelistRecord) {
 	// 低性能实现.
 	for wip, _ := range WhiteIPs {
 		wr := new(WhitelistRecord)
-		inputRaw := utils.ExecCommand("iptables -vnL SELF_WHITELIST | grep " + wip)
+		inputRaw := utils.ExecCommand("iptables -vnL BANDWIDTH_IN | grep " + wip)
 		outputRaw := utils.ExecCommand("iptables -vnL BANDWIDTH_OUT | grep " + wip)
 		inField := strings.Fields(inputRaw)
 		outField := strings.Fields(outputRaw)
