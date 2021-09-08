@@ -156,12 +156,14 @@ func FlushIPtables() {
 }
 
 func AddIPWhitelist(ip string) string {
-	utils.ExecCommand(`iptables -I BANDWIDTH_OUT -d ` + ip + ` -j RETURN`)
+	utils.ExecCommand(`iptables -t nat -I BANDWIDTH_OUT -d ` + ip + ` -j RETURN`)
+	utils.ExecCommand(`iptables -t nat -I BANDWIDTH_IN -d ` + ip + ` -j RETURN`)
 	return utils.ExecCommand(`iptables -I SELF_WHITELIST -s ` + ip + ` -j ACCEPT`)
 }
 
 func DelIPWhitelist(ip string) string {
-	utils.ExecCommand(`iptables -D BANDWIDTH_OUT -d ` + ip + ` -j RETURN`)
+	utils.ExecCommand(`iptables -t nat -D BANDWIDTH_OUT -d ` + ip + ` -j RETURN`)
+	utils.ExecCommand(`iptables -t nat -D BANDWIDTH_IN -d ` + ip + ` -j RETURN`)
 	return utils.ExecCommand(`iptables -D SELF_WHITELIST -s ` + ip + ` -j ACCEPT`)
 }
 
