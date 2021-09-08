@@ -44,7 +44,8 @@ func InitIPtables(isreset bool) {
 	utils.ExecCommand(`iptables -N SELF_BLACKLIST`)
 	utils.ExecCommand(`iptables -N SELF_WHITELIST`)
 	// 用于统计上传到每个ip的流量,即每ip从服务器的下载流量
-	utils.ExecCommand(`iptables -N BANDWIDTH_OUT`)
+	utils.ExecCommand(`iptables -t nat -N BANDWIDTH_OUT`)
+	utils.ExecCommand(`iptables -t nat -N BANDWIDTH_IN`)
 	//开发时把自己的ip加进去，避免出问题
 	// utils.ExecCommand(`iptables -A SELF_WHITELIST -s ` + "1.1.1.1" + ` -j ACCEPT`)
 	//允许本地回环连接
@@ -105,11 +106,15 @@ func InitIPtables(isreset bool) {
 			utils.ExecCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + port + ` -j ` + denyAction)
 		}
 	}
-	//添加引用 入流量会到自定义的表进行处理
-	utils.ExecCommand(`iptables -A INPUT -j SELF_BLACKLIST`)
-	utils.ExecCommand(`iptables -A INPUT -j SELF_WHITELIST`)
-	// 流量统计需要在OUTPUT上增加规则,获取每ip下载流量
-	utils.ExecCommand(`iptables -A OUTPUT -j BANDWIDTH_OUT`)
+	// 发向普通应用的流量进入INPURT
+	utils.ExecCommand(`iptables -I INPUT -j SELF_WHITELIST`)
+	utils.ExecCommand(`iptables -I INPUT -j SELF_BLACKLIST`)
+	// 发向docker的流量会进入FORWARD
+	utils.ExecCommand(`iptables -I FORWARD -j SELF_WHITELIST`)
+	utils.ExecCommand(`iptables -I FORWARD -j SELF_BLACKLIST`)
+	// 增加规则,获取每ip下载流量
+	utils.ExecCommand(`iptables -t nat -I PREROUTING -j BANDWIDTH_IN`)
+	utils.ExecCommand(`iptables -t nat -I POSTROUTING -j BANDWIDTH_OUT`)
 }
 
 func removeChainAfterExit() {
