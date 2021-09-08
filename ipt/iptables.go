@@ -129,13 +129,19 @@ func removeChainAfterExit() {
 		utils.ExecCommand(`iptables -D INPUT -j SELF_BLACKLIST`)
 		utils.ExecCommand(`iptables -D INPUT -j SELF_WHITELIST`)
 
-		utils.ExecCommand(`iptables -D OUTPUT -j BANDWIDTH_OUT`)
+		utils.ExecCommand(`iptables -D FORWARD -j SELF_BLACKLIST`)
+		utils.ExecCommand(`iptables -D FORWARD -j SELF_WHITELIST`)
+
+		utils.ExecCommand(`iptables -t nat -D POSTROUTING -j BANDWIDTH_OUT`)
+		utils.ExecCommand(`iptables -t nat -D PREROUTING -j BANDWIDTH_IN`)
+
 		utils.ExecCommand(`iptables -F SELF_BLACKLIST`)
 		utils.ExecCommand(`iptables -F SELF_WHITELIST`)
 		utils.ExecCommand(`iptables -F BANDWIDTH_OUT`)
 		utils.ExecCommand(`iptables -X SELF_BLACKLIST`)
 		utils.ExecCommand(`iptables -X SELF_WHITELIST`)
 		utils.ExecCommand(`iptables -X BANDWIDTH_OUT`)
+		utils.ExecCommand(`iptables -X BANDWIDTH_IN`)
 		os.Exit(0)
 	}()
 }
@@ -150,7 +156,11 @@ func FlushIPtables() {
 	utils.ExecCommandWithoutOutput(`iptables -F SELF_BLACKLIST`)
 	utils.ExecCommandWithoutOutput(`iptables -X SELF_BLACKLIST`)
 
-	utils.ExecCommandWithoutOutput(`iptables -D OUTPUT -j BANDWIDTH_OUT`)
+	utils.ExecCommandWithoutOutput(`iptables -t nat -D POSTROUTING -j BANDWIDTH_OUT`)
+	utils.ExecCommandWithoutOutput(`iptables -F BANDWIDTH_OUT`)
+	utils.ExecCommandWithoutOutput(`iptables -X BANDWIDTH_OUT`)
+
+	utils.ExecCommandWithoutOutput(`iptables -t nat -D PREROUTING -j BANDWIDTH_IN`)
 	utils.ExecCommandWithoutOutput(`iptables -F BANDWIDTH_OUT`)
 	utils.ExecCommandWithoutOutput(`iptables -X BANDWIDTH_OUT`)
 }
@@ -192,8 +202,8 @@ func GetWhitelistData() (whitelistRecords []WhitelistRecord) {
 	// 低性能实现.
 	for wip, _ := range WhiteIPs {
 		wr := new(WhitelistRecord)
-		inputRaw := utils.ExecCommand("iptables -vnL SELF_WHITELIST | grep " + wip)
-		outputRaw := utils.ExecCommand("iptables -vnL BANDWIDTH_OUT | grep " + wip)
+		inputRaw := utils.ExecCommand("iptables -t nat -vnL BANDWIDTH_OUT | grep " + wip)
+		outputRaw := utils.ExecCommand("iptables -t nat -vnL BANDWIDTH_OUT | grep " + wip)
 		inField := strings.Fields(inputRaw)
 		outField := strings.Fields(outputRaw)
 		wr.IP = wip
