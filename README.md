@@ -26,7 +26,7 @@ chmod +x selfhelp-iptables-whitelist
 
 2. 特定端口访问白名单限制 
 
-   默认阻止任何外部ip访问本地的特定端口 带上参数 -protect后自动启用 **强烈建议使用该模式**
+   默认阻止任何外部ip访问本地的特定端口 带上参数 -protect后自动启用 **建议使用该模式**
 
 使用第一种运行模式，执行程序后，所有的端口都会被禁止访问（默认放行了22端口的访问和icmp请求），之后请求 `http://example.com:8080/api/add?key=[你设置的key]` 可以将你的ip添加到白名单里面。
 
@@ -34,7 +34,7 @@ chmod +x selfhelp-iptables-whitelist
 
 **注意，程序需要能获取到访问者的ip才能添加白名单，所以不要再frp的客户端上运行这个程序，不然得到的ip会是 127.0.0.1，默认放行**
 
-**强烈建议使用第二种方法，全端口拦截会出现很多问题，如DNS无法查询之类的。**
+**建议使用第二种方法，全端口拦截会出现很多问题，如DNS无法查询之类的。**
 
 ## 实时日志设置
 
@@ -42,7 +42,6 @@ chmod +x selfhelp-iptables-whitelist
 
 在 Ubuntu/debian中，日志位于 */var/log/kern.log* 而 centos/rhel中，日志位于 */var/log/messages*,理论上程序已经做了判断，当然你也可以把iptables日志记录到单独的文件中,**需使用下面的名字**。
 
-**！！！！建议不需要修改保存路径**
 
 **个人尝试，在某些系统下，把日志保存到其他文件中的尝试失败了，所以如果你修改了保存文件后发现iptables.log迟迟没有写入信息，那么删掉这个文件和配置文件中的设置并重新运行程序吧。或者[参考此文](https://askubuntu.com/questions/348439/where-can-i-find-the-iptables-log-file-and-how-can-i-change-its-location)折腾一下，如果还是不行，就删掉自己新建的文件，使用默认的系统日志文件。**
 
