@@ -139,7 +139,12 @@ systemctl restart rsyslog
 
    `http://example.com:8080/api/record?key=[你设置的adminkey]`
 
-退出程序后，程序会清空添加的iptables规则链（**程序自己新建了一条链，不会影响之前的链**），如果自动清理失败，可以采取手动清理的方式。
+## 程序对系统的影响
+
+该程序的拦截规则是在一条新的链里面进行的，在退出程序后程序会清空这条规则链，所以如果设置错了导致连不上ssh，那么可以尝试使用vnc连接到机器上，ps aux |grep self 找到进程并kill即可。
+
+或者手动清理规则链
+
 
 ```bash
 iptables -D INPUT -j SELF_WHITELIST
