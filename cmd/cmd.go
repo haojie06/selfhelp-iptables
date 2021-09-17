@@ -38,6 +38,7 @@ Github: https://github.com/aoyouer/selfhelp-iptables-whitelist
 
 	startCmd = &cobra.Command{
 		Use:     "start",
+		Short: "Start protecting",
 		Example: "selfhelp-iptables-whitelist start -a adminkey -u userkey -p 22,23",
 		// 当前命令只是用来初始化配置、之后便进入交互模式
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -113,7 +114,7 @@ func init() {
 	startCmd.Flags().IntVarP(&addThreshold, "threhold", "t", 8, "Auto add whitelist after how many failed connections")
 	startCmd.Flags().StringVarP(&autoReset, "autoreset", "r", "", "Auto reset all records options: hh(half hour) h(hour) hd(half day) d(day) w(week)")
 	startCmd.Flags().BoolVarP(&reject, "reject", "d", false, "Send icmp packet after blocking")
-	startCmd.Flags().StringVar(&rateTrigger, "trigger", "", "[Experimental] Add whitelist when syn packet rate exceeds threshold. eg: 10/3 means 10 syn packets in three seconds")
+	startCmd.Flags().StringVar(&rateTrigger, "trigger", "", "Add whitelist when syn packet rate exceeds threshold. eg: 10/3 means 10 syn packets in 3 seconds")
 	startCmd.Flags().BoolVar(&reverseProxySupport,"reverse",false,"Enable reverse proxy support")
 	rootCmd.AddCommand(startCmd)
 }
