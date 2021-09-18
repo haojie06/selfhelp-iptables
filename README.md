@@ -1,4 +1,4 @@
-# selfhelp-iptables-whitelist 通过http api 添加iptables白名单
+# selfhelp-iptables 通过http api 添加iptables白名单
 
 
 自助添加iptables白名单的工具，可以通过http请求来向iptables添加白名单，防止不怀好意之人的端口扫描和恶意探测。
