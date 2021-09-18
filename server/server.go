@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	"selfhelp-iptables-whitelist/config"
+	"selfhelp-iptables/config"
 )
 
 func StartServer() {
