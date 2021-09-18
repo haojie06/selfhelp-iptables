@@ -24,14 +24,14 @@ var (
 	reject              bool
 	reverseProxySupport bool
 	rootCmd             = &cobra.Command{
-		Use:   "selfhelp-iptables-whitelist",
-		Short: "Selfhelp iptables whitelist is a tool controlling iptables through http api and cmdline.",
-		Long: `Selfhelp iptables whitelist 是一个通过http api和命令行控制iptables的工具
-           https://github.com/aoyouer/selfhelp-iptables-whitelist`,
+		Use:   "selfhelp-iptables",
+		Short: "Selfhelp iptables is a tool controlling iptables through http api and cmdline.",
+		Long: `Selfhelp iptables 是一个通过http api和命令行控制iptables的工具
+           https://github.com/aoyouer/selfhelp-iptables`,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println(`Selfhelp iptables whitelist 是一个通过http api和命令行控制iptables的工具
-Github: https://github.com/aoyouer/selfhelp-iptables-whitelist
-请使用selfhelp-iptables-whitelist start启动程序`)
+			fmt.Println(`Selfhelp iptables 是一个通过http api和命令行控制iptables的工具
+Github: https://github.com/aoyouer/selfhelp-iptables
+请使用selfhelp-iptables start启动程序`)
 			os.Exit(0)
 		},
 	}
@@ -39,11 +39,11 @@ Github: https://github.com/aoyouer/selfhelp-iptables-whitelist
 	startCmd = &cobra.Command{
 		Use:     "start",
 		Short: "Start protecting",
-		Example: "selfhelp-iptables-whitelist start -a adminkey -u userkey -p 22,23",
+		Example: "selfhelp-iptables start -a adminkey -u userkey -p 22,23",
 		// 当前命令只是用来初始化配置、之后便进入交互模式
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			// 对参数进行检查
-			fmt.Println("Selfhelp iptables whitelist starting...")
+			fmt.Println("Selfhelp iptables starting...")
 			// 初始化配置
 			if userKeySetting == "" || adminKeySetting == "" {
 				color.New(color.FgRed).Println("adminkey和userkey不能为空")

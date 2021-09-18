@@ -1,4 +1,4 @@
-# selfhelp-iptables-whitelist 通过http api 添加iptables白名单
+# selfhelp-iptables 通过http api 添加iptables黑/白名单
 
 
 自助添加iptables白名单的工具，可以通过http请求来向iptables添加白名单，防止不怀好意之人的端口扫描和恶意探测。
@@ -8,14 +8,14 @@
 只在debian/ubuntu上测试过，centos要用的话请`systemctl stop firewalld`，仅使用iptables。
 
 ```bash
-wget https://github.com/aoyouer/selfhelp-iptables-whitelist/releases/download/[version]/selfhelp-iptables-whitelist
-chmod +x selfhelp-iptables-whitelist
+wget https://github.com/aoyouer/selfhelp-iptables/releases/download/[version]/selfhelp-iptables
+chmod +x selfhelp-iptables
 # 查看帮助
-./selfhelp-iptables-whitelist help
+./selfhelp-iptables help
 #拦截1080端口
-./selfhelp-iptables-whitelist start -u userkey -a adminkey -p 1080
+./selfhelp-iptables start -u userkey -a adminkey -p 1080
 #或者全端口拦截 放行 22 80 443
-./selfhelp-iptables-whitelist start -u userkey -a adminkey -w 22,80,443
+./selfhelp-iptables start -u userkey -a adminkey -w 22,80,443
 ```
 
 有两种运行模式
