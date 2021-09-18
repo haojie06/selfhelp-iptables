@@ -6,10 +6,10 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"os"
-	"selfhelp-iptables-whitelist/config"
-	"selfhelp-iptables-whitelist/ipt"
-	"selfhelp-iptables-whitelist/server"
-	"selfhelp-iptables-whitelist/utils"
+	"selfhelp-iptables/config"
+	"selfhelp-iptables/ipt"
+	"selfhelp-iptables/server"
+	"selfhelp-iptables/utils"
 )
 
 var (

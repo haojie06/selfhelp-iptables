@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"selfhelp-iptables-whitelist/ipt"
-	"selfhelp-iptables-whitelist/utils"
+	"selfhelp-iptables/ipt"
+	"selfhelp-iptables/utils"
 )
 
 //暂时只接受最多两个参数的输入

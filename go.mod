@@ -1,4 +1,4 @@
-module selfhelp-iptables-whitelist
+module selfhelp-iptables
 
 go 1.16
 

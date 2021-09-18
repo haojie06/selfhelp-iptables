@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 	"github.com/robfig/cron/v3"
-	"selfhelp-iptables-whitelist/config"
-	"selfhelp-iptables-whitelist/ipt"
+	"selfhelp-iptables/config"
+	"selfhelp-iptables/ipt"
 )
 
 func startCron() {

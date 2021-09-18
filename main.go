@@ -1,7 +1,7 @@
 package main
 
 import (
-	"selfhelp-iptables-whitelist/cmd"
+	"selfhelp-iptables/cmd"
 )
 
 
