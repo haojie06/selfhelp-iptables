@@ -30,6 +30,7 @@ type Record struct {
 }
 
 // read logs from netfilter
+// https://github.com/google/gopacket/issues/736
 func ReadNFLogs() {
 	config := nflog.Config{
 		Group:    100,
