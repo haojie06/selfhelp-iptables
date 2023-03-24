@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/fatih/color v1.10.0
+	github.com/florianl/go-nflog/v2 v2.0.2-0.20230217081207-3c47ed628bdd
 	github.com/gorilla/mux v1.8.0
 	github.com/hpcloud/tail v1.0.0
 	github.com/robfig/cron/v3 v3.0.0
