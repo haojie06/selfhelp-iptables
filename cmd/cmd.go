@@ -6,6 +6,7 @@ import (
 	"os"
 	"selfhelp-iptables/config"
 	"selfhelp-iptables/ipt"
+	"selfhelp-iptables/iptsvc"
 	"selfhelp-iptables/server"
 	"selfhelp-iptables/utils"
 
@@ -74,6 +75,8 @@ Github: https://github.com/aoyouer/selfhelp-iptables
 					RateTrigger:         rateTrigger,
 					ReverseProxySupport: reverseProxySupport,
 				})
+				iptSvc := iptsvc.IPTablesService{}
+				iptSvc.Init()
 				// 启动程序
 				color.Set(color.FgCyan, color.Bold)
 				fmt.Println("开始运行iptables自助白名单")
@@ -86,7 +89,7 @@ Github: https://github.com/aoyouer/selfhelp-iptables
 				ipt.InitIPtables(false)
 				// 开启一个协程实时读取 内核日志 过滤出尝试访问端口的ip
 				go ipt.ReadIPLogs()
-				go ipt.ReadNFLogs()
+				go iptSvc.ReadNFLogs()
 				go server.StartServer()
 				// 主协程读取用户输入并执行命令
 				for {

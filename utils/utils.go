@@ -33,7 +33,7 @@ func ExecCommandWithoutOutput(cmd string) string {
 	return string(result)
 }
 
-//注意时左闭右开
+// 注意时左闭右开
 func RemoveFromSlice(slice []string, s int) []string {
 	if s != len(slice)-1 {
 		return append(slice[:s], slice[s+1:]...)
@@ -44,7 +44,7 @@ func RemoveFromSlice(slice []string, s int) []string {
 	}
 }
 
-//检查文件是否存在
+// 检查文件是否存在
 func FileExist(path string) bool {
 	_, err := os.Lstat(path)
 	return !os.IsNotExist(err)
@@ -58,6 +58,19 @@ func CheckPorts(strPorts string) (result bool) {
 		if _, err := strconv.Atoi(strings.TrimSpace(p)); err != nil {
 			result = false
 			fmt.Printf("%q 不是有效端口.\n", p)
+		}
+	}
+	return
+}
+
+// 将逗号分隔的端口字符串转换为整型数组
+func PortsToIntArray(strPorts string) (result []int) {
+	ports := strings.Split(strPorts, ",")
+	for _, p := range ports {
+		port, err := strconv.Atoi(strings.TrimSpace(p))
+		if err == nil {
+			result = append(result, port)
+
 		}
 	}
 	return

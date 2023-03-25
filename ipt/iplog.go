@@ -1,7 +1,6 @@
 package ipt
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
@@ -13,7 +12,6 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	nflog "github.com/florianl/go-nflog/v2"
 	"github.com/hpcloud/tail"
 )
 
@@ -27,42 +25,6 @@ type Record struct {
 	Proto     string
 	TTL       string
 	Interface string
-}
-
-// read logs from netfilter
-// https://github.com/google/gopacket/issues/736
-func ReadNFLogs() {
-	config := nflog.Config{
-		Group:    100,
-		Copymode: nflog.CopyMeta,
-	}
-	nf, err := nflog.Open(&config)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer nf.Close()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	hook := func(attrs nflog.Attribute) int {
-		log.Printf("hook called: %+v", attrs)
-		return 0
-	}
-
-	// errFunc that is called for every error on the registered hook
-	errFunc := func(e error) int {
-		// Just log the error and return 0 to continue receiving packets
-		fmt.Fprintf(os.Stderr, "received error on hook: %v", e)
-		return 0
-	}
-
-	err = nf.RegisterWithErrorFunc(ctx, hook, errFunc)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	<-ctx.Done()
 }
 
 func ReadIPLogs() {

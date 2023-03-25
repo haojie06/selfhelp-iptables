@@ -97,7 +97,7 @@ func InitIPtables(isreset bool) {
 			// 非白名单ip访问指定端口的时候记录日志
 			utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -j LOG --log-prefix='[netfilter]' --log-level 4`)
 			utils.ExecCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + port + ` -j LOG --log-prefix='[netfilter]' --log-level 4`)
-			utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -j NFLOG --nflog-group 100`)
+			utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -j NFLOG --nflog-group 100 --nflog-prefix [ipt]`)
 			// 端口连接速率触发器 syn速率触发解锁
 			if validTrigger {
 				utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -m recent --name ` + port + `TRIGGER --set`)
