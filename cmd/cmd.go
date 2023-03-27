@@ -80,17 +80,15 @@ Github: https://github.com/aoyouer/selfhelp-iptables
 
 				// 启动程序
 				color.Set(color.FgCyan, color.Bold)
-				fmt.Println("开始运行iptables自助白名单")
+				fmt.Println("Start running iptables whitelist")
 				if reverseProxySupport {
-					fmt.Println("开启反向代理支持")
+					fmt.Println("Enable reverse proxy support")
 				}
 
 				utils.CheckCommandExists("iptables")
 				// 启动iptables服务
 				iptSvc := iptsvc.IPTablesService{}
 				// 开启一个协程实时读取 内核日志 过滤出尝试访问端口的ip(准备移除)
-				// ipt.InitIPtables(false)
-				// go ipt.ReadIPLogs()
 				iptSvc.Start()
 				go server.StartServer(&iptSvc)
 				// 启动周期性任务

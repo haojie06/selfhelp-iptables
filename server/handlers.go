@@ -37,28 +37,28 @@ func checkKey(req *http.Request, privilege bool, apiName string) (result bool) {
 			if privilege {
 				if k == config.GetConfig().AdminKey {
 					result = true
-					utils.CmdColorGreen.Printf("%s IP: %s 尝试请求API: %s 已允许\n", now, remoteIP, apiName)
+					utils.CmdColorGreen.Printf("%s ip: %s try to request API: %s is allowed\n", now, remoteIP, apiName)
 				} else {
 					result = false
-					utils.CmdColorRed.Printf("%s IP: %s 尝试请求API: %s 已拒绝 错误的KEY: %s\n", now, remoteIP, apiName, k)
+					utils.CmdColorRed.Printf("%s ip: %s tried to access api: %s denied, wrong key: %s\n", now, remoteIP, apiName, k)
 				}
 			} else {
 				if k == config.GetConfig().UserKey || k == config.GetConfig().AdminKey {
-					utils.CmdColorGreen.Printf("%s IP: %s 尝试请求API: %s 已允许\n", now, remoteIP, apiName)
+					utils.CmdColorGreen.Printf("%s ip: %s try to request API: %s has been allowed\n", now, remoteIP, apiName)
 					result = true
 				} else {
-					utils.CmdColorRed.Printf("%s IP: %s 尝试请求API: %s 已拒绝 错误的KEY: %s\n", now, remoteIP, apiName, k)
+					utils.CmdColorRed.Printf("%s ip: %s try to request API: %s rejected, error key: %s\n", now, remoteIP, apiName, k)
 					result = false
 				}
 			}
 		} else {
 			color.Set(color.FgRed)
-			utils.CmdColorYellow.Printf("%s IP: %s 尝试请求API: %s 已拒绝 未设置KEY\n", now, remoteIP, apiName)
+			utils.CmdColorYellow.Printf("%s IP: %s try to request api: %s denied, KEY not set\n", now, remoteIP, apiName)
 			color.Unset()
 			result = false
 		}
 	} else {
-		log.Println("KEY解析错误")
+		log.Println("key parsing error")
 	}
 	return
 }
@@ -211,23 +211,23 @@ func GetRecords(w http.ResponseWriter, req *http.Request) {
 		for ip, count := range iptablesService.PacketPerIP {
 			if _, exist := iptablesService.WhitelistedIPs[ip]; exist {
 				whitelistStrBuilder.WriteString(ip)
-				whitelistStrBuilder.WriteString(" 记录次数: ")
+				whitelistStrBuilder.WriteString("Record times: ")
 				whitelistStrBuilder.WriteString(strconv.Itoa(count))
-				whitelistStrBuilder.WriteString(" [白名单]\n")
+				whitelistStrBuilder.WriteString(" [Whitelist]\n")
 			} else {
 				nowhitelistStrBuilder.WriteString(ip)
-				nowhitelistStrBuilder.WriteString(" 记录次数: ")
+				nowhitelistStrBuilder.WriteString("Record times: ")
 				nowhitelistStrBuilder.WriteString(strconv.Itoa(count))
 				nowhitelistStrBuilder.WriteString("\n")
 			}
 		}
 
 		strBuilder := strings.Builder{}
-		strBuilder.WriteString(fmt.Sprintf("共有个%d个ip被记录,其中%d个ip添加了白名单,%d个ip没有添加白名单\n", len(iptablesService.PacketPerIP), len(iptablesService.WhitelistedIPs), len(iptablesService.PacketPerIP)-len(iptablesService.WhitelistedIPs)))
+		strBuilder.WriteString(fmt.Sprintf("There are %d ips recorded, of which %d ips have been added to the whitelist, and %d ips have not been added to the whitelist\n", len(iptablesService.PacketPerIP), len(iptablesService.WhitelistedIPs), len(iptablesService.PacketPerIP)-len(iptablesService.WhitelistedIPs)))
 		strBuilder.WriteString(whitelistStrBuilder.String())
 		strBuilder.WriteString(nowhitelistStrBuilder.String())
 		fmt.Fprintln(w, strBuilder.String())
 	} else {
-		fmt.Fprintf(w, "key错误")
+		fmt.Fprintf(w, "key error")
 	}
 }
