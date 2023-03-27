@@ -8,7 +8,7 @@ import (
 	"selfhelp-iptables/utils"
 	"strconv"
 	"strings"
-	"sync"
+	"sync" 
 	"time"
 
 	"github.com/fatih/color"

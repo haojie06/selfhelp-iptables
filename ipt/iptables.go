@@ -54,37 +54,28 @@ func InitIPtables(isreset bool) {
 	//允许ssh避免出问题
 	//utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport 22 -j ACCEPT`)
 	//如果设置了白名单端口，一并放行
-	allowPorts := strings.Split(cfg.WhitePorts, ",")
-	if len(allowPorts) > 0 {
-		for _, allowPort := range allowPorts {
-			if allowPort != "" {
-				utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + allowPort + ` -j ACCEPT`)
-				utils.ExecCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + allowPort + ` -j ACCEPT`)
-			}
-		}
+	for _, allowPort := range cfg.WhitelistedPorts {
+		utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + strconv.Itoa(allowPort) + ` -j ACCEPT`)
+		utils.ExecCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + strconv.Itoa(allowPort) + ` -j ACCEPT`)
 	}
 	utils.ExecCommand(`iptables -A SELF_WHITELIST -p icmp -j ACCEPT`)
 	//注意放行次客户端监听的端口
-	utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + cfg.ListenPort + ` -j ACCEPT`)
+	utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + strconv.Itoa(cfg.ListenPort) + ` -j ACCEPT`)
 	if isreset {
 		log.Println("执行防火墙重置")
 	} else {
 		removeChainAfterExit()
 	}
-	if cfg.ProtectPorts == "" {
+	if len(cfg.ProtectedPorts) == 0 {
 		if !isreset {
-			fmt.Println("未指定端口，使用全端口防护\n白名单端口:" + cfg.WhitePorts)
+			fmt.Println("未指定端口，使用全端口防护\n白名单端口:", cfg.WhitelistedPorts)
 		}
-		//注意禁止连接放最后... 之后添加白名单时用 -I
-		//安全起见，还是不要使用 -P 设置默认丢弃
-		// utils.ExecCommand(`iptables -P SELF_WHITELIST DROP`)
+		//注意禁止连接放最后... 之后添加白名单时用 -I, 安全起见，还是不要使用 -P 设置默认丢弃
 		utils.ExecCommand(`iptables -A SELF_WHITELIST -j ` + denyAction)
 	} else {
 		if !isreset {
-			fmt.Println("指定端口,拒绝下列端口的连接: " + cfg.ProtectPorts + "\n响应方式: " + denyAction + "\n白名单端口: " + cfg.WhitePorts)
+			fmt.Println("指定端口,拒绝下列端口的连接: ", cfg.ProtectedPorts, "\n响应方式: "+denyAction+"\n白名单端口: ", cfg.WhitelistedPorts)
 		}
-		pPorts := strings.Split(cfg.ProtectPorts, ",")
-
 		if rateTrigger != "" {
 			pStr, tStr, validTrigger = parseTrigger(rateTrigger)
 			if !validTrigger {
@@ -93,18 +84,17 @@ func InitIPtables(isreset bool) {
 				fmt.Printf("SYN速率激活模式 %s packets / %s secondes\n", pStr, tStr)
 			}
 		}
-		for _, port := range pPorts {
+		for _, port := range cfg.ProtectedPorts {
 			// 非白名单ip访问指定端口的时候记录日志
-			utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -j LOG --log-prefix='[netfilter]' --log-level 4`)
-			utils.ExecCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + port + ` -j LOG --log-prefix='[netfilter]' --log-level 4`)
-			utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -j NFLOG --nflog-group 100 --nflog-prefix [ipt]`)
+			utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + strconv.Itoa(port) + ` -j LOG --log-prefix='[netfilter]' --log-level 4`)
+			utils.ExecCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + strconv.Itoa(port) + ` -j LOG --log-prefix='[netfilter]' --log-level 4`)
 			// 端口连接速率触发器 syn速率触发解锁
 			if validTrigger {
-				utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -m recent --name ` + port + `TRIGGER --set`)
-				utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -m recent --name ` + port + `TRIGGER --rcheck --seconds ` + tStr + ` --hitcount ` + pStr + ` -j  LOG --log-prefix='[netfilter-trigger]' --log-level 4`)
+				utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + strconv.Itoa(port) + ` -m recent --name ` + strconv.Itoa(port) + `TRIGGER --set`)
+				utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + strconv.Itoa(port) + ` -m recent --name ` + strconv.Itoa(port) + `TRIGGER --rcheck --seconds ` + tStr + ` --hitcount ` + pStr + ` -j  LOG --log-prefix='[netfilter-trigger]' --log-level 4`)
 			}
-			utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + port + ` -j ` + denyAction)
-			utils.ExecCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + port + ` -j ` + denyAction)
+			utils.ExecCommand(`iptables -A SELF_WHITELIST -p tcp --dport ` + strconv.Itoa(port) + ` -j ` + denyAction)
+			utils.ExecCommand(`iptables -A SELF_WHITELIST -p udp --dport ` + strconv.Itoa(port) + ` -j ` + denyAction)
 		}
 	}
 	// 发向普通应用的流量进入INPURT
@@ -198,7 +188,7 @@ func ResetIPWhitelist() {
 func GetWhitelistData() (whitelistRecords []WhitelistRecord) {
 	// 分别获取INPUT和OUTPUT的查询数据,之后过滤出每ip的值
 	// 低性能实现.
-	for wip, _ := range WhiteIPs {
+	for wip := range WhiteIPs {
 		wr := new(WhitelistRecord)
 		inputRaw := utils.ExecCommand("iptables -vnL BANDWIDTH_IN | grep " + wip)
 		outputRaw := utils.ExecCommand("iptables -vnL BANDWIDTH_OUT | grep " + wip)

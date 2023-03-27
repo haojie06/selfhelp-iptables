@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"strconv"
@@ -51,13 +50,12 @@ func FileExist(path string) bool {
 }
 
 // 检查端口是否合法
-func CheckPorts(strPorts string) (result bool) {
+func CheckPorts(ports []int32) (result bool) {
 	result = true
-	ports := strings.Split(strPorts, ",")
 	for _, p := range ports {
-		if _, err := strconv.Atoi(strings.TrimSpace(p)); err != nil {
+		if p < 1 || p > 65535 {
 			result = false
-			fmt.Printf("%q 不是有效端口.\n", p)
+			return
 		}
 	}
 	return
@@ -74,4 +72,13 @@ func PortsToIntArray(strPorts string) (result []int) {
 		}
 	}
 	return
+}
+
+// convert []int32 to []int
+func Int32sToInts(int32s []int32) []int {
+	result := make([]int, len(int32s))
+	for i, n := range int32s {
+		result[i] = int(n)
+	}
+	return result
 }
