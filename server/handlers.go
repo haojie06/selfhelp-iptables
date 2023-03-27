@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"selfhelp-iptables/config"
-	"selfhelp-iptables/ipt"
 	"selfhelp-iptables/utils"
 	"strconv"
 	"strings"
@@ -170,7 +169,7 @@ func Reset(w http.ResponseWriter, req *http.Request) {
 	keyAuthentication := checkKey(req, true, "Reset")
 	if keyAuthentication {
 		//获取日志
-		ipt.ResetIPWhitelist()
+		iptablesService.ResetWhitelist()
 		fmt.Fprintf(w, "reset success")
 	} else {
 		fmt.Fprintf(w, "key error")
@@ -209,8 +208,8 @@ func GetRecords(w http.ResponseWriter, req *http.Request) {
 	keyAuthentication := checkKey(req, true, "GetRecords")
 	var whitelistStrBuilder, nowhitelistStrBuilder strings.Builder
 	if keyAuthentication {
-		for ip, count := range ipt.RecordedIPs {
-			if _, exist := ipt.WhiteIPs[ip]; exist {
+		for ip, count := range iptablesService.PacketPerIP {
+			if _, exist := iptablesService.WhitelistedIPs[ip]; exist {
 				whitelistStrBuilder.WriteString(ip)
 				whitelistStrBuilder.WriteString(" 记录次数: ")
 				whitelistStrBuilder.WriteString(strconv.Itoa(count))
@@ -224,7 +223,7 @@ func GetRecords(w http.ResponseWriter, req *http.Request) {
 		}
 
 		strBuilder := strings.Builder{}
-		strBuilder.WriteString(fmt.Sprintf("共有个%d个ip被记录,其中%d个ip添加了白名单,%d个ip没有添加白名单\n", len(ipt.RecordedIPs), len(ipt.WhiteIPs), len(ipt.RecordedIPs)-len(ipt.WhiteIPs)))
+		strBuilder.WriteString(fmt.Sprintf("共有个%d个ip被记录,其中%d个ip添加了白名单,%d个ip没有添加白名单\n", len(iptablesService.PacketPerIP), len(iptablesService.WhitelistedIPs), len(iptablesService.PacketPerIP)-len(iptablesService.WhitelistedIPs)))
 		strBuilder.WriteString(whitelistStrBuilder.String())
 		strBuilder.WriteString(nowhitelistStrBuilder.String())
 		fmt.Fprintln(w, strBuilder.String())

@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"selfhelp-iptables/ipt"
 	"selfhelp-iptables/iptsvc"
 	"selfhelp-iptables/utils"
 )
@@ -11,7 +10,6 @@ import (
 //暂时只接受最多两个参数的输入
 
 func cmdlineHandler(cmd string, iptSvc *iptsvc.IPTablesService) {
-	// fmt.Println(cmd)
 	switch cmd {
 	case "list":
 		whiteIPRecords := iptSvc.GetWhitelistData()
@@ -63,7 +61,7 @@ func cmdlineHandler(cmd string, iptSvc *iptsvc.IPTablesService) {
 			utils.CmdColorYellow.Println(ip, "send", record, "packets")
 		}
 	case "reset":
-		ipt.ResetIPWhitelist()
+		iptSvc.ResetWhitelist()
 		utils.CmdColorYellow.Println("reset.")
 	case "help":
 		utils.CmdColorBlue.Println("command help:")

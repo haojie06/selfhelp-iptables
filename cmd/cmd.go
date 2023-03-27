@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"selfhelp-iptables/config"
-	"selfhelp-iptables/ipt"
 	"selfhelp-iptables/iptsvc"
 	"selfhelp-iptables/server"
 	"selfhelp-iptables/utils"
@@ -85,9 +84,6 @@ Github: https://github.com/aoyouer/selfhelp-iptables
 				if reverseProxySupport {
 					fmt.Println("开启反向代理支持")
 				}
-				ipt.FlushIPtables()
-				// 启动周期性任务
-				startCron()
 
 				utils.CheckCommandExists("iptables")
 				// 启动iptables服务
@@ -97,6 +93,8 @@ Github: https://github.com/aoyouer/selfhelp-iptables
 				// go ipt.ReadIPLogs()
 				iptSvc.Start()
 				go server.StartServer(&iptSvc)
+				// 启动周期性任务
+				startCron(&iptSvc)
 				// 主协程读取用户输入并执行命令
 				for {
 					var cmdIn string
