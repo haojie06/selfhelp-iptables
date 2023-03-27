@@ -14,8 +14,8 @@ import (
 type IPTablesService struct {
 	IP4Tables        *iptables.IPTables
 	IP6Tables        *iptables.IPTables
-	WhitelistedIPs   map[string]interface{}
-	BlacklistedIPs   map[string]interface{}
+	WhitelistedIPs   map[string]struct{}
+	BlacklistedIPs   map[string]struct{}
 	WhitelistedPorts []int
 	ProtectedPorts   map[int]interface{}
 	PacketPerIP      map[string]int
@@ -40,8 +40,8 @@ func (s *IPTablesService) initConfig() {
 	if s.IP6Tables, err = iptables.NewWithProtocol(iptables.ProtocolIPv6); err != nil {
 		log.Fatal("Failed to initialize ip6tables")
 	}
-	s.WhitelistedIPs = make(map[string]interface{})
-	s.BlacklistedIPs = make(map[string]interface{})
+	s.WhitelistedIPs = make(map[string]struct{})
+	s.BlacklistedIPs = make(map[string]struct{})
 
 	s.WhitelistedPorts = cfg.WhitelistedPorts
 	s.ProtectedPorts = make(map[int]interface{})
@@ -102,7 +102,6 @@ func (s *IPTablesService) readNFLogs() {
 				log.Println("rate trigger", prefix, ip.TTL, srcIP, protocol, dstPort, "count:", s.PacketPerIP[srcIP])
 				s.AddWhitelistedIP(srcIP)
 			}
-
 		}
 
 		// packet6 := gopacket.NewPacket(*attrs.Payload, layers.EthernetTypeIPv6, gopacket.Default)

@@ -12,14 +12,6 @@ import (
 	"syscall"
 )
 
-type WhitelistRecord struct {
-	IP           string
-	PacketsOut   string
-	PacketsIn    string
-	BandwidthOut string
-	BandwidthIn  string
-}
-
 var (
 	WhiteIPs    = make(map[string]bool)
 	BlackIPs    = make(map[string]bool)
@@ -181,31 +173,6 @@ func ResetIPWhitelist() {
 	WhiteIPs = make(map[string]bool)
 	//blackIPs = make(map[string]bool) 黑名单不重置
 	RecordedIPs = make(map[string]int)
-}
-
-// 生成白名单统计记录的方法 包含白名单中的ip 上传下载的包的数量和流量
-
-func GetWhitelistData() (whitelistRecords []WhitelistRecord) {
-	// 分别获取INPUT和OUTPUT的查询数据,之后过滤出每ip的值
-	// 低性能实现.
-	for wip := range WhiteIPs {
-		wr := new(WhitelistRecord)
-		inputRaw := utils.ExecCommand("iptables -vnL BANDWIDTH_IN | grep " + wip)
-		outputRaw := utils.ExecCommand("iptables -vnL BANDWIDTH_OUT | grep " + wip)
-		inField := strings.Fields(inputRaw)
-		outField := strings.Fields(outputRaw)
-		wr.IP = wip
-		if len(inField) == 9 {
-			wr.PacketsIn = inField[0]
-			wr.BandwidthIn = inField[1]
-		}
-		if len(outField) == 9 {
-			wr.PacketsOut = outField[0]
-			wr.BandwidthOut = outField[1]
-		}
-		whitelistRecords = append(whitelistRecords, *wr)
-	}
-	return
 }
 
 func parseTrigger(triggerStr string) (pStr string, tStr string, valid bool) {

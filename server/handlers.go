@@ -75,16 +75,14 @@ func AddWhitelist(w http.ResponseWriter, req *http.Request) {
 	// 需要对ip进行检查,
 	if keyAuthentication {
 		if len(strings.Split(remoteIP, ",")) == 1 {
-			ipt.AddIPWhitelist(remoteIP)
-			utils.CmdColorGreen.Println("添加ip白名单 " + remoteIP)
-			fmt.Fprintf(w, "添加ip白名单:"+remoteIP)
-			ipt.WhiteIPs[remoteIP] = true
+			iptablesService.AddWhitelistedIP(remoteIP)
+			utils.CmdColorGreen.Println("add whitelisted ip:", remoteIP)
+			fmt.Fprintf(w, "add whitelisted ip:"+remoteIP)
 		} else {
-			fmt.Fprintf(w, "错误的头部,尝试添加多个ip: "+remoteIP)
+			fmt.Fprintf(w, "unsupported header"+remoteIP)
 		}
-
 	} else {
-		fmt.Fprintf(w, "key错误")
+		fmt.Fprintf(w, "key error")
 	}
 }
 
@@ -93,12 +91,11 @@ func AddBlackList(w http.ResponseWriter, req *http.Request) {
 	if keyAuthentication {
 		vars := mux.Vars(req)
 		addIP := vars["ip"]
-		ipt.AddIPBlacklist(addIP)
-		utils.CmdColorGreen.Println("添加ip黑名单 " + addIP)
-		fmt.Fprintf(w, "添加ip黑名单:"+addIP)
-		ipt.BlackIPs[addIP] = true
+		iptablesService.AddBlacklistedIP(addIP)
+		utils.CmdColorGreen.Println("add blacklisted ip:", addIP)
+		fmt.Fprintf(w, "add blacklisted ip: "+addIP)
 	} else {
-		fmt.Fprintf(w, "key错误")
+		fmt.Fprintf(w, "key error")
 	}
 }
 
@@ -107,14 +104,11 @@ func RemoveWhitelist(w http.ResponseWriter, req *http.Request) {
 	if keyAuthentication {
 		vars := mux.Vars(req)
 		removeIP := vars["ip"]
-		utils.CmdColorGreen.Println("移除ip白名单 " + removeIP)
-		fmt.Fprintf(w, "移除ip白名单:"+removeIP)
-		ipt.DelIPWhitelist(removeIP)
-		if _, exist := ipt.WhiteIPs[removeIP]; exist {
-			delete(ipt.WhiteIPs, removeIP)
-		}
+		utils.CmdColorGreen.Println("remove whitelisted ip:", removeIP)
+		fmt.Fprintf(w, "remove whitelisted ip: "+removeIP)
+		iptablesService.RemoveWhitelistedIP(removeIP)
 	} else {
-		fmt.Fprintf(w, "key错误")
+		fmt.Fprintf(w, "key error")
 	}
 }
 
@@ -123,14 +117,11 @@ func RemoveBlacklist(w http.ResponseWriter, req *http.Request) {
 	if keyAuthentication {
 		vars := mux.Vars(req)
 		removeIP := vars["ip"]
-		utils.CmdColorGreen.Println("移除ip黑名单 " + removeIP)
-		fmt.Fprintf(w, "移除ip黑名单:"+removeIP)
-		ipt.DelIPBlacklist(removeIP)
-		if _, exist := ipt.BlackIPs[removeIP]; exist {
-			delete(ipt.BlackIPs, removeIP)
-		}
+		utils.CmdColorGreen.Println("remove blacklisted ip:", removeIP)
+		fmt.Fprintf(w, "remove blacklisted ip: "+removeIP)
+		iptablesService.RemoveBlacklistedIP(removeIP)
 	} else {
-		fmt.Fprintf(w, "key错误")
+		fmt.Fprintf(w, "key error")
 	}
 }
 
@@ -138,15 +129,15 @@ func ShowWhitelist(w http.ResponseWriter, req *http.Request) {
 	keyAuthentication := checkKey(req, true, "ShowWhitelist")
 	if keyAuthentication {
 		//获取ips
-		whiteIPRecords := ipt.GetWhitelistData()
-		ips := fmt.Sprintf("当前白名单中共有%d个ip\n", len(whiteIPRecords))
+		whiteIPRecords := iptablesService.GetWhitelistData()
+		ips := fmt.Sprintf("found %d ip\n", len(whiteIPRecords))
 		ips += fmt.Sprintf("%-15s %-9s %-6s %-9s %-6s\n", "IP", "Download", "DPkts", "Upload", "UPkts")
 		for _, ipr := range whiteIPRecords {
 			ips += fmt.Sprintf("%-15s %-9s %-6s %-9s %-6s\n", ipr.IP, ipr.BandwidthOut, ipr.PacketsOut, ipr.BandwidthIn, ipr.PacketsIn)
 		}
-		fmt.Fprintf(w, ips)
+		fmt.Fprint(w, ips)
 	} else {
-		fmt.Fprintf(w, "key错误")
+		fmt.Fprint(w, "key error")
 	}
 }
 
@@ -155,62 +146,62 @@ func ShowBlacklist(w http.ResponseWriter, req *http.Request) {
 	if keyAuthentication {
 		//获取ips
 		var ips string
-		for ip, _ := range ipt.BlackIPs {
+		for ip := range iptablesService.BlacklistedIPs {
 			ips = fmt.Sprintln(ips, ip)
 		}
-		fmt.Fprintf(w, ips)
+		fmt.Fprint(w, ips)
 	} else {
-		fmt.Fprintf(w, "key错误")
+		fmt.Fprintf(w, "key error")
 	}
 }
 
-func GetLogs(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req, true, "GetLogs")
-	if keyAuthentication {
-		//获取日志
-		ipLogs := utils.ExecCommand(`cat ` + ipt.KernLogURL + `| grep netfilter`)
-		fmt.Fprintf(w, ipLogs)
-	} else {
-		fmt.Fprintf(w, "key错误")
-	}
-}
+// func GetLogs(w http.ResponseWriter, req *http.Request) {
+// 	keyAuthentication := checkKey(req, true, "GetLogs")
+// 	if keyAuthentication {
+// 		//获取日志
+// 		ipLogs := utils.ExecCommand(`cat ` + ipt.KernLogURL + `| grep netfilter`)
+// 		fmt.Fprintf(w, ipLogs)
+// 	} else {
+// 		fmt.Fprintf(w, "key错误")
+// 	}
+// }
 
 func Reset(w http.ResponseWriter, req *http.Request) {
 	keyAuthentication := checkKey(req, true, "Reset")
 	if keyAuthentication {
 		//获取日志
 		ipt.ResetIPWhitelist()
-		fmt.Fprintf(w, "已进行重置")
+		fmt.Fprintf(w, "reset success")
 	} else {
-		fmt.Fprintf(w, "key错误")
+		fmt.Fprintf(w, "key error")
 	}
 }
 
-func Vnstat(w http.ResponseWriter, req *http.Request) {
-	keyAuthentication := checkKey(req, true, "Vnstat")
-	param := strings.TrimSpace(req.URL.Query().Get("param"))
-	if keyAuthentication {
-		//获取日志
-		// 需要检查参数的合法性
-		var validParams = []string{"-5", "-h", "--hours", "--hoursgraph", "-hg", "-d", "--days", "-m", "--months", "-y", "--years", "-t", "--top", ""}
-		var valid bool
-		for _, p := range validParams {
-			if param == p {
-				valid = true
-				break
-			}
-		}
-		if valid {
-			stat := utils.ExecCommand("vnstat " + param)
-			fmt.Fprintf(w, stat)
-		} else {
-			fmt.Fprintf(w, "无效参数: "+param)
-		}
+// func Vnstat(w http.ResponseWriter, req *http.Request) {
+// 	keyAuthentication := checkKey(req, true, "Vnstat")
+// 	param := strings.TrimSpace(req.URL.Query().Get("param"))
+// 	if keyAuthentication {
+// 		//获取日志
+// 		// 需要检查参数的合法性
+// 		var validParams = []string{"-5", "-h", "--hours", "--hoursgraph", "-hg", "-d", "--days", "-m", "--months", "-y", "--years", "-t", "--top", ""}
+// 		var valid bool
+// 		for _, p := range validParams {
+// 			if param == p {
+// 				valid = true
+// 				break
+// 			}
+// 		}
+// 		if valid {
+// 			stat := utils.ExecCommand("vnstat " + param)
+// 			fmt.Fprintf(w, stat)
+// 		} else {
+// 			fmt.Fprintf(w, "无效参数: "+param)
+// 		}
 
-	} else {
-		fmt.Fprintf(w, "key错误")
-	}
-}
+// 	} else {
+// 		fmt.Fprintf(w, "key错误")
+// 	}
+// }
 
 //只输出ip和探测数量
 

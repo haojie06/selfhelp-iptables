@@ -96,12 +96,12 @@ Github: https://github.com/aoyouer/selfhelp-iptables
 				// ipt.InitIPtables(false)
 				// go ipt.ReadIPLogs()
 				iptSvc.Start()
-				go server.StartServer()
+				go server.StartServer(&iptSvc)
 				// 主协程读取用户输入并执行命令
 				for {
 					var cmdIn string
 					fmt.Scan(&cmdIn)
-					cmdlineHandler(cmdIn)
+					cmdlineHandler(cmdIn, &iptSvc)
 				}
 			}
 			return

@@ -5,13 +5,19 @@ import (
 	"log"
 	"net/http"
 	"selfhelp-iptables/config"
+	"selfhelp-iptables/iptsvc"
 	"strconv"
 
 	"github.com/fatih/color"
 	"github.com/gorilla/mux"
 )
 
-func StartServer() {
+var (
+	iptablesService *iptsvc.IPTablesService
+)
+
+func StartServer(svc *iptsvc.IPTablesService) {
+	iptablesService = svc
 	cfg := config.GetConfig()
 	//开启go routine
 	router := mux.NewRouter().StrictSlash(true)
@@ -20,9 +26,9 @@ func StartServer() {
 	router.HandleFunc("/api/ban/{ip}", AddBlackList)
 	router.HandleFunc("/api/list", ShowWhitelist)
 	router.HandleFunc("/api/listb", ShowBlacklist)
-	router.HandleFunc("/api/log", GetLogs)
+	// router.HandleFunc("/api/log", GetLogs)
 	router.HandleFunc("/api/reset", Reset)
-	router.HandleFunc("/api/vnstat", Vnstat)
+	// router.HandleFunc("/api/vnstat", Vnstat)
 	router.HandleFunc("/api/record", GetRecords)
 	router.HandleFunc("/api/remove/{ip}", RemoveWhitelist)
 	router.HandleFunc("/api/unban/{ip}", RemoveBlacklist)

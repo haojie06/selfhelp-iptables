@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"selfhelp-iptables/utils"
 	"strconv"
 	"strings"
 	"syscall"
@@ -19,6 +20,14 @@ const (
 	PREFIX_DEFAULT = "[ipt]"
 	PREFIX_TRIGGER = "[ipt-trigger]"
 )
+
+type WhitelistRecord struct {
+	IP           string
+	PacketsOut   string
+	PacketsIn    string
+	BandwidthOut string
+	BandwidthIn  string
+}
 
 func (s *IPTablesService) initTables() {
 	s.IP4Tables.NewChain("filter", PROTECT_CHAIN)
@@ -93,9 +102,17 @@ func (s *IPTablesService) AddWhitelistedIP(ip string) {
 
 func (s *IPTablesService) RemoveWhitelistedIP(ip string) {
 	delete(s.WhitelistedIPs, ip)
+	delete(s.PacketPerIP, ip)
 	s.IP4Tables.Delete("filter", BANDWIDTH_IN_CHAIN, "-s", ip, "-j", "RETURN")
 	s.IP4Tables.Delete("filter", BANDWIDTH_OUT_CHAIN, "-d", ip, "-j", "RETURN")
 	s.IP4Tables.Delete("filter", PROTECT_CHAIN, "-s", ip, "-j", "ACCEPT")
+}
+
+func (s *IPTablesService) ResetWhitelist() {
+	s.WhitelistedIPs = make(map[string]struct{})
+	s.PacketPerIP = make(map[string]int)
+	s.Clear()
+	s.initTables()
 }
 
 func (s *IPTablesService) AddBlacklistedIP(ip string) {
@@ -105,7 +122,33 @@ func (s *IPTablesService) AddBlacklistedIP(ip string) {
 
 func (s *IPTablesService) RemoveBlacklistedIP(ip string) {
 	delete(s.BlacklistedIPs, ip)
+	delete(s.PacketPerIP, ip)
 	s.IP4Tables.Delete("filter", BLACKLIST_CHAIN, "-s", ip, "-j", s.denyAction)
+}
+
+// 生成白名单统计记录的方法 包含白名单中的ip 上传下载的包的数量和流量
+
+func (s *IPTablesService) GetWhitelistData() (whitelistRecords []WhitelistRecord) {
+	// 分别获取INPUT和OUTPUT的查询数据,之后过滤出每ip的值
+	// 低性能实现.
+	for wip := range s.WhitelistedIPs {
+		wr := new(WhitelistRecord)
+		inputRaw := utils.ExecCommand("iptables -vnL BANDWIDTH_IN | grep " + wip)
+		outputRaw := utils.ExecCommand("iptables -vnL BANDWIDTH_OUT | grep " + wip)
+		inField := strings.Fields(inputRaw)
+		outField := strings.Fields(outputRaw)
+		wr.IP = wip
+		if len(inField) == 9 {
+			wr.PacketsIn = inField[0]
+			wr.BandwidthIn = inField[1]
+		}
+		if len(outField) == 9 {
+			wr.PacketsOut = outField[0]
+			wr.BandwidthOut = outField[1]
+		}
+		whitelistRecords = append(whitelistRecords, *wr)
+	}
+	return
 }
 
 func parseTrigger(triggerStr string) (pStr string, tStr string, valid bool) {
