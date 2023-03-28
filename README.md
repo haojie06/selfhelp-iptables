@@ -39,7 +39,7 @@ chmod +x selfhelp-iptables && setcap 'cap_net_admin=+ep' selfhelp-iptables
 
 ～～开始运行后，程序会尝试去寻找iptables的日志文件，并实时读取文件，当文件更新时，实时输出内容。不同系统的日志目录有差异。～～
 
-在新版本中，程序已经改为从nflog中读取日志，不再依赖系统日志文件，但是需要记得使用 `setcap 'cap_net_admin=+ep' selfhelp-iptables` 给予权限。
+在新版本中，程序已经改为从nflog中读取日志，不再依赖系统日志文件。
 
 ## 参数介绍
 
