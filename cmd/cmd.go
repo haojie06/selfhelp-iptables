@@ -100,8 +100,8 @@ Please use selfhelp-iptables start to start program`)
 			if reverseProxySupport {
 				fmt.Println("enable reverse proxy support")
 			}
-			fmt.Println("protected ports", protectPorts, "whitelisted ports", whitePorts)
-			fmt.Println("whitelisted ips", allowedIPs)
+			fmt.Println("protected ports:", protectPorts, "whitelisted ports:", whitePorts)
+			fmt.Println("whitelisted ips:", allowedIPs)
 
 			utils.CheckCommandExists("iptables")
 			// 启动iptables服务

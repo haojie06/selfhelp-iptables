@@ -82,7 +82,7 @@ chmod +x selfhelp-iptables && setcap 'cap_net_admin=+ep' selfhelp-iptables
   可选参数，开启后对于被拦截端口的访问会返回一个拒绝连接的icmp包
   
 - --reverse
-  开启反向代理支持，读取http请求头获取客户端ip，请仅在使用可信反向代理的情况下使用,nginx示例:
+  开启反向代理支持，读取http请求头获取客户端ip，请仅在使用可信反向代理的情况下使用,nginx示例: 
   ```
           location /api {
            proxy_set_header  X-real-ip $remote_addr;
@@ -90,6 +90,7 @@ chmod +x selfhelp-iptables && setcap 'cap_net_admin=+ep' selfhelp-iptables
            proxy_pass http://127.0.0.1:8080/api;
         }
   ```
+  **需要注意，在开启反向代理支持之后，不会默认为http api端口添加白名单，所以可以使用 -p [http api 监听的端口] 来阻止外部直接请求http api(必须走反向代理)**
 
 - --trigger [counts]/[seconds]
 

@@ -2,6 +2,7 @@ package iptsvc
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"os/signal"
 	"selfhelp-iptables/config"
@@ -43,9 +44,20 @@ func (s *IPTablesService) initTables() {
 	s.IP4Tables.AppendUnique("filter", "INPUT", "-j", BLACKLIST_CHAIN) // 注意顺序，先黑名单后白名单
 	s.IP4Tables.AppendUnique("filter", "INPUT", "-j", PROTECT_CHAIN)
 
-	s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-s", "127.0.0.1", "-j", "ACCEPT")
-	s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "icmp", "-j", "ACCEPT")
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
+	// 本机ip放行
+	for _, address := range addrs {
+		if ipnet, ok := address.(*net.IPNet); ok && ipnet.IP.To4() != nil {
+			s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-s", ipnet.IP.String(), "-j", "ACCEPT")
+		}
+	}
+
+	s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "icmp", "-j", "ACCEPT")
 	for _, ip := range config.ServiceConfig.AllowedIPs {
 		s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-s", ip, "-j", "ACCEPT")
 	}
