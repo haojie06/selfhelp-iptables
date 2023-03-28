@@ -74,7 +74,11 @@ Please use selfhelp-iptables start to start program`)
 				}
 			}
 
-			whitePorts = append(whitePorts, listenPort)
+			// 在没有开启反向代理支持的时候，将监听端口加入白名单
+			if !reverseProxySupport {
+				whitePorts = append(whitePorts, listenPort)
+			}
+
 			// 初始化全局共享的配置
 			config.ServiceConfig = &config.Config{
 				AddThreshold:        autoAddThreshold,
