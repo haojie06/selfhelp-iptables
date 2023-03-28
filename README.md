@@ -62,7 +62,7 @@ chmod +x selfhelp-iptables && setcap 'cap_net_admin=+ep' selfhelp-iptables
 
 - --allow ip1 ip2
 
-  **可选参数**，放行的ip，空格分隔，或者使用多个 --allow 参数, 支持 cidr(如192.168.0.1/24) 
+  **可选参数**，放行的ip，**使用多个 --allow 参数** 以添加多个ip, 支持 cidr(如192.168.0.1/24) 
 
 - -w port1 port2
 
