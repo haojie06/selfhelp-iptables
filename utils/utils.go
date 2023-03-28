@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"fmt"
+	"net"
 	"os"
 	"os/exec"
 	"strconv"
@@ -33,7 +33,7 @@ func ExecCommandWithoutOutput(cmd string) string {
 	return string(result)
 }
 
-//注意时左闭右开
+// 注意时左闭右开
 func RemoveFromSlice(slice []string, s int) []string {
 	if s != len(slice)-1 {
 		return append(slice[:s], slice[s+1:]...)
@@ -44,21 +44,57 @@ func RemoveFromSlice(slice []string, s int) []string {
 	}
 }
 
-//检查文件是否存在
+// 检查文件是否存在
 func FileExist(path string) bool {
 	_, err := os.Lstat(path)
 	return !os.IsNotExist(err)
 }
 
 // 检查端口是否合法
-func CheckPorts(strPorts string) (result bool) {
+func CheckPorts(ports []int32) (result bool) {
 	result = true
-	ports := strings.Split(strPorts, ",")
 	for _, p := range ports {
-		if _, err := strconv.Atoi(strings.TrimSpace(p)); err != nil {
+		if p < 1 || p > 65535 {
 			result = false
-			fmt.Printf("%q 不是有效端口.\n", p)
+			return
 		}
 	}
 	return
+}
+
+// 将逗号分隔的端口字符串转换为整型数组
+func PortsToIntArray(strPorts string) (result []int) {
+	ports := strings.Split(strPorts, ",")
+	for _, p := range ports {
+		port, err := strconv.Atoi(strings.TrimSpace(p))
+		if err == nil {
+			result = append(result, port)
+
+		}
+	}
+	return
+}
+
+// convert []int32 to []int
+func Int32sToInts(int32s []int32) []int {
+	result := make([]int, len(int32s))
+	for i, n := range int32s {
+		result[i] = int(n)
+	}
+	return result
+}
+
+// 判断一个字符串是否是ip或者cidr形式
+func IsIPorCIDR(ip string) bool {
+	if strings.Contains(ip, "/") {
+		_, _, err := net.ParseCIDR(ip)
+		if err != nil {
+			return false
+		}
+	} else {
+		if net.ParseIP(ip) == nil {
+			return false
+		}
+	}
+	return true
 }

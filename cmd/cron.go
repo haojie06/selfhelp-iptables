@@ -2,34 +2,36 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/robfig/cron/v3"
 	"selfhelp-iptables/config"
-	"selfhelp-iptables/ipt"
+	"selfhelp-iptables/iptsvc"
+
+	"github.com/robfig/cron/v3"
 )
 
-func startCron() {
+func startCron(iptSvc *iptsvc.IPTablesService) {
 	c := cron.New()
-	if (config.GetConfig().AddThreshold != 0 || config.GetConfig().RateTrigger != "") && config.GetConfig().AutoReset != "" {
-		resetInterval := config.GetConfig().AutoReset
+	config := config.ServiceConfig
+	if (config.AddThreshold != 0 || config.RateTrigger != "") && config.AutoReset != "" {
+		resetInterval := config.AutoReset
 		// hh 每半小时重置 h 每小时重置 hd 每半天重置 d 每天重置 w 每周重置
 		switch resetInterval {
 		case "hh":
-			fmt.Println("开启每半小时重置")
-			c.AddFunc("*/30 * * * *", ipt.ResetIPWhitelist)
+			fmt.Println("reset every half hour")
+			c.AddFunc("*/30 * * * *", iptSvc.ResetWhitelist)
 		case "h":
-			fmt.Println("开启每小时重置")
-			c.AddFunc("@hourly", ipt.ResetIPWhitelist)
+			fmt.Println("reset every hour")
+			c.AddFunc("@hourly", iptSvc.ResetWhitelist)
 		case "hd":
-			fmt.Println("开启每半天重置")
-			c.AddFunc("0 0,12 * * *", ipt.ResetIPWhitelist)
+			fmt.Println("reset every half day")
+			c.AddFunc("0 0,12 * * *", iptSvc.ResetWhitelist)
 		case "d":
-			fmt.Println("开启每日重置")
-			c.AddFunc("@daily", ipt.ResetIPWhitelist)
+			fmt.Println("reset every day")
+			c.AddFunc("@daily", iptSvc.ResetWhitelist)
 		case "w":
-			fmt.Println("开启每周重置")
-			c.AddFunc("@weekly", ipt.ResetIPWhitelist)
+			fmt.Println("reset every week")
+			c.AddFunc("@weekly", iptSvc.ResetWhitelist)
 		default:
-			fmt.Println("无效重置参数:", resetInterval)
+			fmt.Println("invalid reset parameters:", resetInterval)
 		}
 
 	}

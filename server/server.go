@@ -2,15 +2,23 @@ package server
 
 import (
 	"fmt"
-	"github.com/fatih/color"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"selfhelp-iptables/config"
+	"selfhelp-iptables/iptsvc"
+	"strconv"
+
+	"github.com/fatih/color"
+	"github.com/gorilla/mux"
 )
 
-func StartServer() {
-	cfg := config.GetConfig()
+var (
+	iptablesService *iptsvc.IPTablesService
+)
+
+func StartServer(svc *iptsvc.IPTablesService) {
+	iptablesService = svc
+	cfg := config.ServiceConfig
 	//开启go routine
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", HelloServer)
@@ -18,17 +26,16 @@ func StartServer() {
 	router.HandleFunc("/api/ban/{ip}", AddBlackList)
 	router.HandleFunc("/api/list", ShowWhitelist)
 	router.HandleFunc("/api/listb", ShowBlacklist)
-	router.HandleFunc("/api/log", GetLogs)
+	// router.HandleFunc("/api/log", GetLogs)
 	router.HandleFunc("/api/reset", Reset)
-	router.HandleFunc("/api/vnstat", Vnstat)
+	// router.HandleFunc("/api/vnstat", Vnstat)
 	router.HandleFunc("/api/record", GetRecords)
 	router.HandleFunc("/api/remove/{ip}", RemoveWhitelist)
 	router.HandleFunc("/api/unban/{ip}", RemoveBlacklist)
-
-	fmt.Println("Server start Port:"+cfg.ListenPort+" UserKey:"+cfg.UserKey+" AdminKey:"+cfg.AdminKey, "\n输入help查看控制台命令帮助")
+	fmt.Println("httpPort:", cfg.ListenPort, " userKey: "+cfg.UserKey+" adminKey: "+cfg.AdminKey, "\nuse help to see the console command help")
 	color.Unset()
-	err := http.ListenAndServe("0.0.0.0:"+cfg.ListenPort, router)
+	err := http.ListenAndServe("0.0.0.0:"+strconv.Itoa(cfg.ListenPort), router)
 	if err != nil {
-		log.Fatal("Server error: " + err.Error())
+		log.Fatal("server error: " + err.Error())
 	}
 }
