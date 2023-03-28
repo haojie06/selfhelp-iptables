@@ -21,12 +21,13 @@ func Execute() {
 }
 
 var (
-	autoReset       string  // 自动重置已添加的白名单和黑名单, 可以指定周期时常
-	adminKeySetting string  // 用于执行管理的key
-	userKeySetting  string  // 用于执行添加白名单的key
-	listenPort      int32   // http api监听端口
-	protectPorts    []int32 // 需要保护的端口, 默认会拦截外部对这些端口的请求
-	whitePorts      []int32 // 白名单端口
+	autoReset       string   // 自动重置已添加的白名单和黑名单, 可以指定周期时常
+	adminKeySetting string   // 用于执行管理的key
+	userKeySetting  string   // 用于执行添加白名单的key
+	listenPort      int32    // http api监听端口
+	protectPorts    []int32  // 需要保护的端口, 默认会拦截外部对这些端口的请求
+	whitePorts      []int32  // 白名单端口
+	allowedIPs      []string // 白名单IP,支持cidr形式
 
 	autoAddThreshold int    // 自动添加的阈值,当接收到的包超过这个值时自动添加白名单，不设置时不会自动添加
 	rateTrigger      string // 包速率触发器, 当包速率超过这个值时自动添加白名单，不设置时不会自动添加
@@ -53,7 +54,8 @@ Please use selfhelp-iptables start to start program`)
 		Example: "selfhelp-iptables start -a adminkey -u userkey -p 22 -p 23 -l 8080",
 
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			fmt.Println("Selfhelp iptables starting...")
+			fmt.Println("selfhelp iptables starting...")
+
 			// 对参数进行检查
 			if userKeySetting == "" || adminKeySetting == "" {
 				color.New(color.FgRed).Println("require adminkey and userkey")
@@ -64,6 +66,12 @@ Please use selfhelp-iptables start to start program`)
 				utils.CmdColorRed.Println("ports must be in range 1-65535")
 				err = errors.New("illegal ports")
 				return
+			}
+			for _, ipStr := range allowedIPs {
+				if !utils.IsIPorCIDR(ipStr) {
+					err = errors.New("illegal ip")
+					return
+				}
 			}
 
 			whitePorts = append(whitePorts, listenPort)
@@ -76,6 +84,7 @@ Please use selfhelp-iptables start to start program`)
 				ListenPort:          int(listenPort),
 				ProtectedPorts:      utils.Int32sToInts(protectPorts),
 				WhitelistedPorts:    utils.Int32sToInts(whitePorts),
+				AllowedIPs:          allowedIPs,
 				Reject:              reject,
 				RateTrigger:         rateTrigger,
 				ReverseProxySupport: reverseProxySupport,
@@ -88,6 +97,7 @@ Please use selfhelp-iptables start to start program`)
 				fmt.Println("enable reverse proxy support")
 			}
 			fmt.Println("protected ports", protectPorts, "whitelisted ports", whitePorts)
+			fmt.Println("whitelisted ips", allowedIPs)
 
 			utils.CheckCommandExists("iptables")
 			// 启动iptables服务
@@ -110,6 +120,7 @@ func init() {
 
 	startCmd.Flags().Int32SliceVarP(&protectPorts, "protect", "p", []int32{}, "ports to be protected")
 	startCmd.Flags().Int32SliceVarP(&whitePorts, "white", "w", []int32{}, "whitelisted ports, all packets to these ports will be accepted")
+	startCmd.Flags().StringSliceVarP(&allowedIPs, "allow", "i", []string{}, "whitelisted ips, all packets from these ips will be accepted, use ip or cidr")
 
 	startCmd.Flags().StringVarP(&adminKeySetting, "adminkey", "a", "", "key used to control this system")
 	startCmd.Flags().StringVarP(&userKeySetting, "userkey", "u", "", "key used to add whitelist through http api")

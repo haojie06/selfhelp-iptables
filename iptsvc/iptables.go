@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"selfhelp-iptables/config"
 	"selfhelp-iptables/utils"
 	"strconv"
 	"strings"
@@ -44,6 +45,10 @@ func (s *IPTablesService) initTables() {
 
 	s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-s", "127.0.0.1", "-j", "ACCEPT")
 	s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "icmp", "-j", "ACCEPT")
+
+	for _, ip := range config.ServiceConfig.AllowedIPs {
+		s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-s", ip, "-j", "ACCEPT")
+	}
 
 	// 默认放行的端口初始化
 	for _, port := range s.WhitelistedPorts {

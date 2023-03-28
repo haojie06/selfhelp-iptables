@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"net"
 	"os"
 	"os/exec"
 	"strconv"
@@ -81,4 +82,19 @@ func Int32sToInts(int32s []int32) []int {
 		result[i] = int(n)
 	}
 	return result
+}
+
+// 判断一个字符串是否是ip或者cidr形式
+func IsIPorCIDR(ip string) bool {
+	if strings.Contains(ip, "/") {
+		_, _, err := net.ParseCIDR(ip)
+		if err != nil {
+			return false
+		}
+	} else {
+		if net.ParseIP(ip) == nil {
+			return false
+		}
+	}
+	return true
 }
