@@ -65,7 +65,7 @@ func cmdlineHandler(cmd string, iptSvc *iptsvc.IPTablesService) {
 		utils.CmdColorYellow.Println("reset.")
 	case "help":
 		utils.CmdColorBlue.Println("command help:")
-		utils.CmdColorCyan.Println("add add whitelist\nremove remove whitelist\nban add blacklist\nunban remove blacklist\nlist list current whitelist\nlistb list current blacklist\nrecord list [detect ip:count] record\nreset reset record")
+		utils.CmdColorCyan.Println("add: add whitelist\nremove: remove whitelist\nban: add blacklist\nunban: remove blacklist\nlist: list current whitelist\nlistb: list current blacklist\nrecord: list [detect ip:count] record\nreset: reset record")
 
 	case "exit":
 		os.Exit(1)

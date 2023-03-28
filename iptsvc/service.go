@@ -33,7 +33,7 @@ func (s *IPTablesService) Start() {
 }
 
 func (s *IPTablesService) initService() {
-	cfg := config.GetConfig()
+	cfg := config.ServiceConfig
 	var err error
 	if s.IP4Tables, err = iptables.New(); err != nil {
 		log.Fatal("failed to initialize iptables")
@@ -110,6 +110,7 @@ func (s *IPTablesService) readNFLogs() {
 			}
 		}
 
+		// TODO IPv6
 		// packet6 := gopacket.NewPacket(*attrs.Payload, layers.EthernetTypeIPv6, gopacket.Default)
 		// if ip, ok := packet6.Layer(layers.LayerTypeIPv6).(*layers.IPv6); ok {
 		// 	if tcp, ok := packet6.Layer(layers.LayerTypeTCP).(*layers.TCP); ok {

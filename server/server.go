@@ -18,7 +18,7 @@ var (
 
 func StartServer(svc *iptsvc.IPTablesService) {
 	iptablesService = svc
-	cfg := config.GetConfig()
+	cfg := config.ServiceConfig
 	//开启go routine
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", HelloServer)
@@ -32,10 +32,10 @@ func StartServer(svc *iptsvc.IPTablesService) {
 	router.HandleFunc("/api/record", GetRecords)
 	router.HandleFunc("/api/remove/{ip}", RemoveWhitelist)
 	router.HandleFunc("/api/unban/{ip}", RemoveBlacklist)
-	fmt.Println("Server start Port:", cfg.ListenPort, " UserKey: "+cfg.UserKey+" AdminKey: "+cfg.AdminKey, "\n输入help查看控制台命令帮助")
+	fmt.Println("httpPort:", cfg.ListenPort, " userKey: "+cfg.UserKey+" adminKey: "+cfg.AdminKey, "\nuse help to see the console command help")
 	color.Unset()
 	err := http.ListenAndServe("0.0.0.0:"+strconv.Itoa(cfg.ListenPort), router)
 	if err != nil {
-		log.Fatal("Server error: " + err.Error())
+		log.Fatal("server error: " + err.Error())
 	}
 }

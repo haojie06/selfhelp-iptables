@@ -15,7 +15,7 @@ import (
 )
 
 func getClientIP(req *http.Request) (remoteIP string) {
-	reverseSupport := config.GetConfig().ReverseProxySupport
+	reverseSupport := config.ServiceConfig.ReverseProxySupport
 	if ips := req.Header.Get("X-Real-Ip"); ips != "" && reverseSupport {
 		remoteIP = ips
 	} else if ips := req.Header.Get("X-Forwarded-For"); ips != "" && reverseSupport {
@@ -35,7 +35,7 @@ func checkKey(req *http.Request, privilege bool, apiName string) (result bool) {
 		if len(key) > 0 {
 			k := strings.TrimSpace(key[0])
 			if privilege {
-				if k == config.GetConfig().AdminKey {
+				if k == config.ServiceConfig.AdminKey {
 					result = true
 					utils.CmdColorGreen.Printf("%s ip: %s try to request API: %s is allowed\n", now, remoteIP, apiName)
 				} else {
@@ -43,7 +43,7 @@ func checkKey(req *http.Request, privilege bool, apiName string) (result bool) {
 					utils.CmdColorRed.Printf("%s ip: %s tried to access api: %s denied, wrong key: %s\n", now, remoteIP, apiName, k)
 				}
 			} else {
-				if k == config.GetConfig().UserKey || k == config.GetConfig().AdminKey {
+				if k == config.ServiceConfig.UserKey || k == config.ServiceConfig.AdminKey {
 					utils.CmdColorGreen.Printf("%s ip: %s try to request API: %s has been allowed\n", now, remoteIP, apiName)
 					result = true
 				} else {
@@ -53,7 +53,7 @@ func checkKey(req *http.Request, privilege bool, apiName string) (result bool) {
 			}
 		} else {
 			color.Set(color.FgRed)
-			utils.CmdColorYellow.Printf("%s IP: %s try to request api: %s denied, KEY not set\n", now, remoteIP, apiName)
+			utils.CmdColorYellow.Printf("%s ip: %s try to request api: %s denied, KEY not set\n", now, remoteIP, apiName)
 			color.Unset()
 			result = false
 		}

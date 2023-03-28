@@ -10,8 +10,9 @@ import (
 
 func startCron(iptSvc *iptsvc.IPTablesService) {
 	c := cron.New()
-	if (config.GetConfig().AddThreshold != 0 || config.GetConfig().RateTrigger != "") && config.GetConfig().AutoReset != "" {
-		resetInterval := config.GetConfig().AutoReset
+	config := config.ServiceConfig
+	if (config.AddThreshold != 0 || config.RateTrigger != "") && config.AutoReset != "" {
+		resetInterval := config.AutoReset
 		// hh 每半小时重置 h 每小时重置 hd 每半天重置 d 每天重置 w 每周重置
 		switch resetInterval {
 		case "hh":
