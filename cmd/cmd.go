@@ -36,12 +36,12 @@ var (
 	rootCmd             = &cobra.Command{
 		Use:   "selfhelp-iptables",
 		Short: "Selfhelp iptables is a tool controlling iptables through http api and cmdline.",
-		Long: `Selfhelp iptables 是一个通过http api和命令行控制iptables的工具
+		Long: `Selfhelp iptables is a tool for controlling iptables through http api and command line
            https://github.com/aoyouer/selfhelp-iptables`,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println(`Selfhelp iptables 是一个通过http api和命令行控制iptables的工具
+			fmt.Println(`Selfhelp iptables is a tool for controlling iptables through http api and command line
 Github: https://github.com/aoyouer/selfhelp-iptables
-请使用selfhelp-iptables start启动程序`)
+Please use selfhelp-iptables start to start program`)
 			os.Exit(0)
 		},
 	}
@@ -88,7 +88,6 @@ Github: https://github.com/aoyouer/selfhelp-iptables
 				utils.CheckCommandExists("iptables")
 				// 启动iptables服务
 				iptSvc := iptsvc.IPTablesService{}
-				// 开启一个协程实时读取 内核日志 过滤出尝试访问端口的ip(准备移除)
 				iptSvc.Start()
 				go server.StartServer(&iptSvc)
 				// 启动周期性任务
@@ -114,7 +113,7 @@ func init() {
 	startCmd.Flags().StringVarP(&userKeySetting, "userkey", "u", "", "key used to add whitelist through http api")
 	startCmd.Flags().Int32VarP(&listenPort, "listen", "l", 8080, "http listen port")
 
-	startCmd.Flags().IntVarP(&addThreshold, "threshold", "t", 8, "auto add whitelist after how many failed connections")
+	startCmd.Flags().IntVarP(&addThreshold, "threshold", "t", -1, "auto add whitelist after how many failed connections")
 	startCmd.Flags().StringVarP(&autoReset, "autoreset", "r", "", "auto reset all records options: hh(half hour) h(hour) hd(half day) d(day) w(week)")
 
 	startCmd.Flags().BoolVarP(&reject, "reject", "d", false, "use reject instead of drop")

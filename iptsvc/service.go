@@ -19,26 +19,27 @@ type IPTablesService struct {
 	WhitelistedPorts []int
 	ProtectedPorts   map[int]interface{}
 	PacketPerIP      map[string]int
+	AutoAddThreshold int
 	denyAction       string
 
 	RateTrigger string
 }
 
 func (s *IPTablesService) Start() {
-	s.initConfig()
+	s.initService()
 	s.initTables()
 	s.clearAfterExit()
 	go s.readNFLogs()
 }
 
-func (s *IPTablesService) initConfig() {
+func (s *IPTablesService) initService() {
 	cfg := config.GetConfig()
 	var err error
 	if s.IP4Tables, err = iptables.New(); err != nil {
-		log.Fatal("Failed to initialize iptables")
+		log.Fatal("failed to initialize iptables")
 	}
 	if s.IP6Tables, err = iptables.NewWithProtocol(iptables.ProtocolIPv6); err != nil {
-		log.Fatal("Failed to initialize ip6tables")
+		log.Fatal("failed to initialize ip6tables")
 	}
 	s.WhitelistedIPs = make(map[string]struct{})
 	s.BlacklistedIPs = make(map[string]struct{})
@@ -57,6 +58,7 @@ func (s *IPTablesService) initConfig() {
 		s.denyAction = "DROP"
 	}
 	s.RateTrigger = cfg.RateTrigger
+	s.AutoAddThreshold = cfg.AddThreshold
 }
 
 func (s *IPTablesService) Record(srcIP string) {
@@ -96,7 +98,11 @@ func (s *IPTablesService) readNFLogs() {
 			if prefix == PREFIX_DEFAULT {
 				if _, exist := s.ProtectedPorts[dstPort]; exist {
 					s.Record(srcIP)
-					log.Println(prefix, ip.TTL, srcIP, protocol, dstPort, "count:", s.PacketPerIP[srcIP])
+					log.Println("packet from", srcIP, protocol, dstPort, "ttl", ip.TTL, "count:", s.PacketPerIP[srcIP])
+					if record, exist := s.PacketPerIP[srcIP]; exist && s.AutoAddThreshold > 0 && record >= s.AutoAddThreshold {
+						log.Println("reach threshold, auto add", srcIP, "to whitelist.")
+						s.AddWhitelistedIP(srcIP)
+					}
 				}
 			} else if _, added := s.WhitelistedIPs[srcIP]; prefix == PREFIX_TRIGGER && !added {
 				log.Println("rate trigger", prefix, ip.TTL, srcIP, protocol, dstPort, "count:", s.PacketPerIP[srcIP])
