@@ -29,7 +29,7 @@ chmod +x selfhelp-iptables && setcap 'cap_net_admin=+ep' selfhelp-iptables
 
 使用第一种运行模式，执行程序后，所有的端口都会被禁止访问（默认放行了22端口的访问和icmp请求），之后请求 `http://example.com:8080/api/add?key=[你设置的key]` 可以将你的ip添加到白名单里面。
 
-使用第二种运行模式，启动程序时还要指定一个参数 -protect [端口号 多个端口号用空格分隔] 如 -protect 80 443 ，程序启动后会阻断对80 443的访问，在访问 `http://example.com:8080/api/add?key=[你设置的key]` 后可以添加白名单
+使用第二种运行模式，启动程序时还要指定一个参数 -protect [端口号 多个端口的话需要重复多次] 如 --protect 80 --protect 443 ，程序启动后会阻断对80 443的访问，在访问 `http://example.com:8080/api/add?key=[你设置的key]` 后可以添加白名单
 
 **注意，程序需要能获取到访问者的ip才能添加白名单，需要确保真实的ip能传递给该服务，如果使用nginx等程序对http api进行反向代理，需要带上 --reverse 参数以开启反向代理支持，然后在nginx中添加 X-Real-Ip 或者 X-Forwarded-For 字段传递请求者的ip。**
 
@@ -56,15 +56,15 @@ chmod +x selfhelp-iptables && setcap 'cap_net_admin=+ep' selfhelp-iptables
 
   **可选参数**，该程序监听的端口，默认8080
 
-- -p port1 port2
+- -p port1
 
   **可选参数**，如果 带上了该参数，程序以第二种模式运行，即只限制部分端口的访问 空格分隔，或者使用多个 -p 参数
 
-- --allow ip1 ip2
+- --allow ip1
 
   **可选参数**，放行的ip，**使用多个 --allow 参数** 以添加多个ip, 支持 cidr(如192.168.0.1/24) 
 
-- -w port1 port2
+- -w port1
 
   **可选参数**，放行的端口
 - -t n
