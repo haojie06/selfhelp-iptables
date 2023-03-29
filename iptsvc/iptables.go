@@ -32,17 +32,17 @@ type WhitelistRecord struct {
 }
 
 func (s *IPTablesService) initTables() {
-	s.IP4Tables.NewChain("filter", PROTECT_CHAIN)
-	s.IP4Tables.NewChain("filter", BLACKLIST_CHAIN)
+	utils.LogError(s.IP4Tables.NewChain("filter", PROTECT_CHAIN))
+	utils.LogError(s.IP4Tables.NewChain("filter", BLACKLIST_CHAIN))
 
-	s.IP4Tables.NewChain("filter", BANDWIDTH_IN_CHAIN)
-	s.IP4Tables.NewChain("filter", BANDWIDTH_OUT_CHAIN)
+	utils.LogError(s.IP4Tables.NewChain("filter", BANDWIDTH_IN_CHAIN))
+	utils.LogError(s.IP4Tables.NewChain("filter", BANDWIDTH_OUT_CHAIN))
 	// 获取每ip下载流量
-	s.IP4Tables.AppendUnique("filter", "INPUT", "-j", BANDWIDTH_IN_CHAIN)
-	s.IP4Tables.AppendUnique("filter", "OUTPUT", "-j", BANDWIDTH_OUT_CHAIN)
+	utils.LogError(s.IP4Tables.AppendUnique("filter", "INPUT", "-j", BANDWIDTH_IN_CHAIN))
+	utils.LogError(s.IP4Tables.AppendUnique("filter", "OUTPUT", "-j", BANDWIDTH_OUT_CHAIN))
 
-	s.IP4Tables.AppendUnique("filter", "INPUT", "-j", BLACKLIST_CHAIN) // 注意顺序，先黑名单后白名单
-	s.IP4Tables.AppendUnique("filter", "INPUT", "-j", PROTECT_CHAIN)
+	utils.LogError(s.IP4Tables.AppendUnique("filter", "INPUT", "-j", BLACKLIST_CHAIN)) // 注意顺序，先黑名单后白名单
+	utils.LogError(s.IP4Tables.AppendUnique("filter", "INPUT", "-j", PROTECT_CHAIN))
 
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
@@ -53,51 +53,50 @@ func (s *IPTablesService) initTables() {
 	// 本机ip放行
 	for _, address := range addrs {
 		if ipnet, ok := address.(*net.IPNet); ok && ipnet.IP.To4() != nil {
-			s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-s", ipnet.IP.String(), "-j", "ACCEPT")
+			utils.LogError(s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-s", ipnet.IP.String(), "-j", "ACCEPT"))
 		}
 	}
 
-	s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "icmp", "-j", "ACCEPT")
+	utils.LogError(s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "icmp", "-j", "ACCEPT"))
 	for _, ip := range config.ServiceConfig.AllowedIPs {
-		s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-s", ip, "-j", "ACCEPT")
+		utils.LogError(s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-s", ip, "-j", "ACCEPT"))
 	}
 
 	// 默认放行的端口初始化
 	for _, port := range s.WhitelistedPorts {
-		s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "tcp", "--dport", strconv.Itoa(port), "-j", "ACCEPT")
-		s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "udp", "--dport", strconv.Itoa(port), "-j", "ACCEPT")
+		utils.LogError(s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "tcp", "--dport", strconv.Itoa(port), "-j", "ACCEPT"))
+		utils.LogError(s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "udp", "--dport", strconv.Itoa(port), "-j", "ACCEPT"))
 	}
 	// 包速率触发器相关的设置
 	pStr, tStr, validTrigger := parseTrigger(s.RateTrigger)
 	// 需要保护的端口初始化
 	if len(s.ProtectedPorts) > 0 {
 		for port := range s.ProtectedPorts {
-			s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "tcp", "--dport", strconv.Itoa(port), "-j", "NFLOG", "--nflog-group", "100", "--nflog-prefix", PREFIX_DEFAULT)
-			s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "udp", "--dport", strconv.Itoa(port), "-j", "NFLOG", "--nflog-group", "100", "--nflog-prefix", PREFIX_DEFAULT)
+			utils.LogError(s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "tcp", "--dport", strconv.Itoa(port), "-j", "NFLOG", "--nflog-group", "100", "--nflog-prefix", PREFIX_DEFAULT))
+			utils.LogError(s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "udp", "--dport", strconv.Itoa(port), "-j", "NFLOG", "--nflog-group", "100", "--nflog-prefix", PREFIX_DEFAULT))
 			if validTrigger {
-				s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "tcp", "--dport", strconv.Itoa(port), "-m", "recent", "--name", strconv.Itoa(port)+"TRIGGER", "--set")
-				s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "tcp", "--dport", strconv.Itoa(port), "-m", "recent", "--name", strconv.Itoa(port)+"TRIGGER", "--rcheck", "--seconds", tStr, "--hitcount", pStr, "-j", "NFLOG", "--nflog-group", "100", "--nflog-prefix", PREFIX_TRIGGER)
+				utils.LogError(s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "tcp", "--dport", strconv.Itoa(port), "-m", "recent", "--name", strconv.Itoa(port)+"TRIGGER", "--set"))
+				utils.LogError(s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "tcp", "--dport", strconv.Itoa(port), "-m", "recent", "--name", strconv.Itoa(port)+"TRIGGER", "--rcheck", "--seconds", tStr, "--hitcount", pStr, "-j", "NFLOG", "--nflog-group", "100", "--nflog-prefix", PREFIX_TRIGGER))
 			}
-			s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "tcp", "--dport", strconv.Itoa(port), "-j", s.denyAction)
-			s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "udp", "--dport", strconv.Itoa(port), "-j", s.denyAction)
+			utils.LogError(s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "tcp", "--dport", strconv.Itoa(port), "-j", s.denyAction))
+			utils.LogError(s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-p", "udp", "--dport", strconv.Itoa(port), "-j", s.denyAction))
 		}
 	} else {
 		// 不指明端口时，全端口防护
-		s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-j", s.denyAction)
+		utils.LogError(s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-j", s.denyAction))
 	}
 }
 
 func (s *IPTablesService) Clear() {
-	s.IP4Tables.Delete("filter", "INPUT", "-j", BANDWIDTH_IN_CHAIN)
-	s.IP4Tables.Delete("filter", "OUTPUT", "-j", BANDWIDTH_OUT_CHAIN)
-	s.IP4Tables.Delete("filter", "INPUT", "-j", PROTECT_CHAIN)
-	s.IP4Tables.Delete("filter", "INPUT", "-j", BLACKLIST_CHAIN)
+	utils.LogError(s.IP4Tables.Delete("filter", "INPUT", "-j", BANDWIDTH_IN_CHAIN))
+	utils.LogError(s.IP4Tables.Delete("filter", "OUTPUT", "-j", BANDWIDTH_OUT_CHAIN))
+	utils.LogError(s.IP4Tables.Delete("filter", "INPUT", "-j", PROTECT_CHAIN))
+	utils.LogError(s.IP4Tables.Delete("filter", "INPUT", "-j", BLACKLIST_CHAIN))
 
-	s.IP4Tables.ClearAndDeleteChain("filter", PROTECT_CHAIN)
-	s.IP4Tables.ClearAndDeleteChain("filter", BLACKLIST_CHAIN)
-	s.IP4Tables.ClearAndDeleteChain("filter", BANDWIDTH_IN_CHAIN)
-	s.IP4Tables.ClearAndDeleteChain("filter", BANDWIDTH_OUT_CHAIN)
-
+	utils.LogError(s.IP4Tables.ClearAndDeleteChain("filter", PROTECT_CHAIN))
+	utils.LogError(s.IP4Tables.ClearAndDeleteChain("filter", BLACKLIST_CHAIN))
+	utils.LogError(s.IP4Tables.ClearAndDeleteChain("filter", BANDWIDTH_IN_CHAIN))
+	utils.LogError(s.IP4Tables.ClearAndDeleteChain("filter", BANDWIDTH_OUT_CHAIN))
 }
 
 // 接收到退出信号时，清理iptables规则
@@ -113,17 +112,17 @@ func (s *IPTablesService) clearAfterExit() {
 
 func (s *IPTablesService) AddWhitelistedIP(ip string) {
 	s.WhitelistedIPs[ip] = struct{}{}
-	s.IP4Tables.Insert("filter", BANDWIDTH_IN_CHAIN, 1, "-s", ip, "-j", "RETURN")
-	s.IP4Tables.Insert("filter", BANDWIDTH_OUT_CHAIN, 1, "-d", ip, "-j", "RETURN")
-	s.IP4Tables.Insert("filter", PROTECT_CHAIN, 1, "-s", ip, "-j", "ACCEPT")
+	utils.LogError(s.IP4Tables.Insert("filter", BANDWIDTH_IN_CHAIN, 1, "-s", ip, "-j", "RETURN"))
+	utils.LogError(s.IP4Tables.Insert("filter", BANDWIDTH_OUT_CHAIN, 1, "-d", ip, "-j", "RETURN"))
+	utils.LogError(s.IP4Tables.Insert("filter", PROTECT_CHAIN, 1, "-s", ip, "-j", "ACCEPT"))
 }
 
 func (s *IPTablesService) RemoveWhitelistedIP(ip string) {
 	delete(s.WhitelistedIPs, ip)
 	delete(s.PacketPerIP, ip)
-	s.IP4Tables.Delete("filter", BANDWIDTH_IN_CHAIN, "-s", ip, "-j", "RETURN")
-	s.IP4Tables.Delete("filter", BANDWIDTH_OUT_CHAIN, "-d", ip, "-j", "RETURN")
-	s.IP4Tables.Delete("filter", PROTECT_CHAIN, "-s", ip, "-j", "ACCEPT")
+	utils.LogError(s.IP4Tables.Delete("filter", BANDWIDTH_IN_CHAIN, "-s", ip, "-j", "RETURN"))
+	utils.LogError(s.IP4Tables.Delete("filter", BANDWIDTH_OUT_CHAIN, "-d", ip, "-j", "RETURN"))
+	utils.LogError(s.IP4Tables.Delete("filter", PROTECT_CHAIN, "-s", ip, "-j", "ACCEPT"))
 }
 
 func (s *IPTablesService) ResetWhitelist() {
@@ -135,13 +134,13 @@ func (s *IPTablesService) ResetWhitelist() {
 
 func (s *IPTablesService) AddBlacklistedIP(ip string) {
 	s.BlacklistedIPs[ip] = struct{}{}
-	s.IP4Tables.AppendUnique("filter", BLACKLIST_CHAIN, "-s", ip, "-j", s.denyAction)
+	utils.LogError(s.IP4Tables.AppendUnique("filter", BLACKLIST_CHAIN, "-s", ip, "-j", s.denyAction))
 }
 
 func (s *IPTablesService) RemoveBlacklistedIP(ip string) {
 	delete(s.BlacklistedIPs, ip)
 	delete(s.PacketPerIP, ip)
-	s.IP4Tables.Delete("filter", BLACKLIST_CHAIN, "-s", ip, "-j", s.denyAction)
+	utils.LogError(s.IP4Tables.Delete("filter", BLACKLIST_CHAIN, "-s", ip, "-j", s.denyAction))
 }
 
 // 生成白名单统计记录的方法 包含白名单中的ip 上传下载的包的数量和流量

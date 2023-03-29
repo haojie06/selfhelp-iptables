@@ -98,3 +98,10 @@ func IsIPorCIDR(ip string) bool {
 	}
 	return true
 }
+
+// 部分错误，我们只需要输出其内容就好
+func LogError(err error) {
+	if err != nil {
+		CmdColorRed.Println(err.Error())
+	}
+}
