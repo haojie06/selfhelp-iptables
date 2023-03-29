@@ -12,9 +12,9 @@ chmod +x selfhelp-iptables && setcap 'cap_net_admin=+ep' selfhelp-iptables
 # 查看帮助
 ./selfhelp-iptables help
 #拦截1080端口与1081端口
-./selfhelp-iptables start -u userkey -a adminkey -p 1080 1081
-#或者全端口拦截 放行 22 80 443
-./selfhelp-iptables start -u userkey -a adminkey -w 22 80 443
+./selfhelp-iptables start -u userkey -a adminkey -p 1080 -p 1081
+#或者全端口拦截 放行 22 80 443, 以及局域网内的ip
+./selfhelp-iptables start -u userkey -a adminkey -w 22 -w 80 -w 443 --allow 192.168.0.1/24
 ```
 
 有两种运行模式
