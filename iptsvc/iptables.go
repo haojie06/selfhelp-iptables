@@ -88,15 +88,16 @@ func (s *IPTablesService) initTables() {
 }
 
 func (s *IPTablesService) Clear() {
+	s.IP4Tables.Delete("filter", "INPUT", "-j", BANDWIDTH_IN_CHAIN)
+	s.IP4Tables.Delete("filter", "OUTPUT", "-j", BANDWIDTH_OUT_CHAIN)
+	s.IP4Tables.Delete("filter", "INPUT", "-j", PROTECT_CHAIN)
+	s.IP4Tables.Delete("filter", "INPUT", "-j", BLACKLIST_CHAIN)
+
 	s.IP4Tables.ClearAndDeleteChain("filter", PROTECT_CHAIN)
 	s.IP4Tables.ClearAndDeleteChain("filter", BLACKLIST_CHAIN)
 	s.IP4Tables.ClearAndDeleteChain("filter", BANDWIDTH_IN_CHAIN)
 	s.IP4Tables.ClearAndDeleteChain("filter", BANDWIDTH_OUT_CHAIN)
 
-	s.IP4Tables.Delete("filter", "INPUT", "-j", BANDWIDTH_IN_CHAIN)
-	s.IP4Tables.Delete("filter", "OUTPUT", "-j", BANDWIDTH_OUT_CHAIN)
-	s.IP4Tables.Delete("filter", "INPUT", "-j", PROTECT_CHAIN)
-	s.IP4Tables.Delete("filter", "INPUT", "-j", BLACKLIST_CHAIN)
 }
 
 // 接收到退出信号时，清理iptables规则
