@@ -143,3 +143,34 @@ iptables -D INPUT -j PROTECT_LIST
 iptables -F PROTECT_LIST
 iptables -X PROTECT_LIST
 ```
+
+## systemd
+```bash
+mv selfhelp-iptables /usr/bin/
+chmod +x /usr/bin/selfhelp-iptables
+```
+
+```systemd
+[Unit]
+Description=selfhelp iptables
+After=iptables.service
+
+[Service]
+Type=simple
+#ExecStart=/bin/bash /root/start.sh
+ExecStart=/usr/bin/selfhelp-iptables start -a 123 -u 123 -p 123 -l 81 -p 80 --reverse
+Restart=always
+StandardInput=tty
+StandardOutput=append:/var/log/selfhelp_iptables.log
+StandardError=append:/var/log/selfhelp_iptables.log
+TTYPath=/dev/tty12
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+systemctl daemon-reload
+systemctl enable selfhelp-iptables
+systemctl start selfhelp-iptables
+```
