@@ -58,7 +58,7 @@ chmod +x selfhelp-iptables && setcap 'cap_net_admin=+ep' selfhelp-iptables
 
 - -p port1
 
-  **可选参数**，如果 带上了该参数，程序以第二种模式运行，即只限制部分端口的访问 空格分隔，或者使用多个 -p 参数
+  **可选参数**，如果 带上了该参数，程序以第二种模式运行，即只限制部分端口的访问 多个端口的话，使用多个 -p 参数
 
 - --allow ip1
 
