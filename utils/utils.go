@@ -51,7 +51,7 @@ func FileExist(path string) bool {
 }
 
 // 检查端口是否合法
-func CheckPorts(ports []int32) (result bool) {
+func CheckPorts(ports []int) (result bool) {
 	result = true
 	for _, p := range ports {
 		if p < 1 || p > 65535 {
