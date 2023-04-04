@@ -174,3 +174,27 @@ systemctl daemon-reload
 systemctl enable selfhelp-iptables
 systemctl start selfhelp-iptables
 ```
+
+## 配置文件支持
+项目目录中提供了一个示例配置文件 config.yaml，可以通过 -c 参数指定配置文件路径:
+
+```yaml
+protectPorts:  # 需要保护的端口, 默认会拦截外部对这些端口的请求
+  - 8001
+  - 8002
+whitelistedPorts: # 白名单端口
+  - 22
+  - 23
+allowIPs: # 白名单IP,支持cidr形式
+  - 192.168.0.1/24
+adminKey: 1234 # 用于执行管理的key
+userKey: 123 # 用于执行添加白名单的key
+listenPort: 8081 # http api监听端口
+autoAddThreshold: -1 # 自动添加的阈值,当接收到的包超过这个值时自动添加白名单，-1时不会自动添加
+# autoReset: d  # 自动重置已添加的白名单和黑名单, 可以指定周期时常
+reject: false # 采用reject进行响应，而不是默认的drop
+# rateTrigger: 10/3 # 包速率触发器, 当包速率超过这个值时自动添加白名单，不设置时不会自动添加
+reverseProxySupport: false # 是否开启反向代理header的支持(x-forwarded-for等header)
+```
+
+除此之外，程序还会尝试在当前目录及 `/etc/selfhelp-iptables/` 中寻找config.yaml文件，如果找到了，会自动加载。配置文件中的选项可以通过url flag来覆盖, 在使用配置文件的情况下，**systemd的service文件可以修改ExecStart的部分为**: `ExecStart=/usr/bin/selfhelp-iptables start`。
