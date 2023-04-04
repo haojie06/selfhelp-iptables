@@ -46,24 +46,11 @@ Please use selfhelp-iptables start to start program`)
 			fmt.Println("selfhelp iptables starting...")
 			utils.CheckCommandExists("iptables")
 			// 对参数进行检查
-			if viper.GetString("userKey") == "" || viper.GetString("adminKey") == "" {
-				color.New(color.FgRed).Println("require adminkey and userkey")
-				err = errors.New("require adminkey and userkey")
-				return
-			}
-			if !(utils.CheckPorts(viper.GetIntSlice("protectPorts")) && utils.CheckPorts(viper.GetIntSlice("whitelistedPorts"))) {
-				utils.CmdColorRed.Println("ports must be in range 1-65535")
-				err = errors.New("illegal ports")
-				return
-			}
-			for _, ipStr := range viper.GetStringSlice("allowIPs") {
-				if !utils.IsIPorCIDR(ipStr) {
-					err = errors.New("illegal ip")
-					return
-				}
+			if err := checkConfig(); err != nil {
+				color.New(color.FgRed).Println(err)
+				return err
 			}
 
-			// 有配置文件则使用配置文件，是否覆盖之后再考虑
 			// 初始化全局共享的配置
 			config.ServiceConfig = &config.Config{
 				AddThreshold:        viper.GetInt("autoAddThreshold"),
@@ -106,6 +93,24 @@ Please use selfhelp-iptables start to start program`)
 	}
 )
 
+func checkConfig() (err error) {
+	if viper.GetString("userKey") == "" || viper.GetString("adminKey") == "" {
+		err = errors.New("require adminkey and userkey")
+		return
+	}
+	if !(utils.CheckPorts(viper.GetIntSlice("protectPorts")) && utils.CheckPorts(viper.GetIntSlice("whitelistedPorts"))) {
+		err = errors.New("illegal ports")
+		return
+	}
+	for _, ipStr := range viper.GetStringSlice("allowIPs") {
+		if !utils.IsIPorCIDR(ipStr) {
+			err = errors.New("illegal ip")
+			return
+		}
+	}
+	return
+}
+
 func initConfig() {
 	if configFilePath == "" {
 		viper.SetConfigName("config")
@@ -124,34 +129,40 @@ func initConfig() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
-	startCmd.Flags().StringVarP(&configFilePath, "config", "c", "", "config file (default is $HOME/.selfhelp-iptables.yaml")
-
-	startCmd.Flags().Int32SliceP("protect", "p", []int32{}, "ports to be protected")
-	startCmd.Flags().Int32SliceP("white", "w", []int32{}, "whitelisted ports, all packets to these ports will be accepted")
-	startCmd.Flags().StringSliceP("allow", "i", []string{}, "whitelisted ips, all packets from these ips will be accepted, use ip or cidr")
+	// 手动指定配置文件路径
+	startCmd.Flags().StringVarP(&configFilePath, "config", "c", "", "config file (default is /etc/selfhelp-iptables/config.yaml")
 
 	startCmd.Flags().StringP("adminkey", "a", "", "key used to control this system")
+	viper.BindPFlag("adminkey", startCmd.Flags().Lookup("adminkey"))
+
 	startCmd.Flags().StringP("userkey", "u", "", "key used to add whitelist through http api")
-	startCmd.Flags().Int32P("listen", "l", 8080, "http listen port")
+	viper.BindPFlag("userkey", startCmd.Flags().Lookup("userkey"))
+
+	startCmd.Flags().IntSliceP("protect", "p", []int{}, "ports to be protected")
+	viper.BindPFlag("protectPorts", startCmd.Flags().Lookup("protect"))
+
+	startCmd.Flags().IntSliceP("white", "w", []int{}, "whitelisted ports, all packets to these ports will be accepted")
+	viper.BindPFlag("whitelistedPorts", startCmd.Flags().Lookup("white"))
+
+	startCmd.Flags().StringSliceP("allow", "i", []string{}, "whitelisted ips, all packets from these ips will be accepted, use ip or cidr")
+	viper.BindPFlag("allowIPs", startCmd.Flags().Lookup("allow"))
 
 	startCmd.Flags().IntP("threshold", "t", -1, "auto add whitelist after how many failed connections")
+	viper.BindPFlag("autoAddThreshold", startCmd.Flags().Lookup("threshold"))
+
 	startCmd.Flags().StringP("autoreset", "r", "", "auto reset all records options: hh(half hour) h(hour) hd(half day) d(day) w(week)")
+	viper.BindPFlag("autoReset", startCmd.Flags().Lookup("autoreset"))
 
 	startCmd.Flags().BoolP("reject", "d", false, "use reject instead of drop")
-	startCmd.Flags().String("trigger", "", "add whitelist when syn packet rate exceeds threshold. eg: 10/3 means 10 syn packets in 3 seconds")
-	startCmd.Flags().Bool("reverse", false, "enable reverse proxy support")
-
-	viper.BindPFlag("protectPorts", startCmd.Flags().Lookup("protect"))
-	viper.BindPFlag("whitelistedPorts", startCmd.Flags().Lookup("white"))
-	viper.BindPFlag("allowIPs", startCmd.Flags().Lookup("allow"))
-	viper.BindPFlag("adminkey", startCmd.Flags().Lookup("adminkey"))
-	viper.BindPFlag("userkey", startCmd.Flags().Lookup("userkey"))
-	viper.BindPFlag("listen", startCmd.Flags().Lookup("listen"))
-	viper.BindPFlag("autoAddThreshold", startCmd.Flags().Lookup("threshold"))
-	viper.BindPFlag("autoreset", startCmd.Flags().Lookup("autoreset"))
 	viper.BindPFlag("reject", startCmd.Flags().Lookup("reject"))
+
+	startCmd.Flags().String("trigger", "", "add whitelist when syn packet rate exceeds threshold. eg: 10/3 means 10 syn packets in 3 seconds")
 	viper.BindPFlag("rateTrigger", startCmd.Flags().Lookup("trigger"))
+
+	startCmd.Flags().IntP("listen", "l", 8080, "http listen port")
+	viper.BindPFlag("listenPort", startCmd.Flags().Lookup("listen"))
+
+	startCmd.Flags().Bool("reverse", false, "enable reverse proxy support")
 	viper.BindPFlag("reverseProxySupport", startCmd.Flags().Lookup("reverse"))
 
 	rootCmd.AddCommand(startCmd)
