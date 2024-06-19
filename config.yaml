@@ -11,7 +11,7 @@ ratetrigger: ""
 reject: false
 reverseproxysupport: false
 userkey: userkey
-whitelistedips:y
+whitelistedips:
 whitelistedports:
     - 22
     - 23
