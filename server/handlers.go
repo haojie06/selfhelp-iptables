@@ -74,7 +74,7 @@ func AddWhitelist(w http.ResponseWriter, req *http.Request) {
 	// 需要对ip进行检查,
 	if keyAuthentication {
 		if len(strings.Split(remoteIP, ",")) == 1 {
-			iptablesService.AddWhitelistedIP(remoteIP)
+			iptablesService.AddWhitelistedIP(remoteIP, true)
 			utils.CmdColorGreen.Println("add whitelisted ip:", remoteIP)
 			fmt.Fprintf(w, "add whitelisted ip:"+remoteIP)
 		} else {
@@ -105,7 +105,7 @@ func RemoveWhitelist(w http.ResponseWriter, req *http.Request) {
 		removeIP := vars["ip"]
 		utils.CmdColorGreen.Println("remove whitelisted ip:", removeIP)
 		fmt.Fprintf(w, "remove whitelisted ip: "+removeIP)
-		iptablesService.RemoveWhitelistedIP(removeIP)
+		iptablesService.RemoveWhitelistedIP(removeIP, true)
 	} else {
 		fmt.Fprintf(w, "key error")
 	}

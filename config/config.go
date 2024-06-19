@@ -7,6 +7,7 @@ type Config struct {
 	UserKey             string
 	ListenPort          int
 	AllowedIPs          []string
+	WhitelistedIPs      []string
 	ProtectedPorts      []int
 	WhitelistedPorts    []int
 	Reject              bool // 不显示指明Reject则直接drop

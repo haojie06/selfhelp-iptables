@@ -28,7 +28,7 @@ func cmdlineHandler(cmd string, iptSvc *iptsvc.IPTablesService) {
 		utils.CmdColorGreen.Println("please enter the IP to add.")
 		fmt.Scanln(&ipNeedToAdd)
 		utils.CmdColorCyan.Println("command executed.")
-		iptSvc.AddWhitelistedIP(ipNeedToAdd)
+		iptSvc.AddWhitelistedIP(ipNeedToAdd, true)
 	case "ban":
 		var ipNeedToBan string
 		utils.CmdColorGreen.Println("please enter the ip to be banned.")
@@ -51,7 +51,7 @@ func cmdlineHandler(cmd string, iptSvc *iptsvc.IPTablesService) {
 		fmt.Scanln(&ipNeedToRemove)
 		if _, exist := iptSvc.WhitelistedIPs[ipNeedToRemove]; exist {
 			utils.CmdColorCyan.Println("the command has been executed.")
-			iptSvc.RemoveWhitelistedIP(ipNeedToRemove)
+			iptSvc.RemoveWhitelistedIP(ipNeedToRemove, true)
 		} else {
 			utils.CmdColorYellow.Println("ip is not in whitelist.")
 		}

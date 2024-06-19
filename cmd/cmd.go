@@ -61,6 +61,7 @@ Please use selfhelp-iptables start to start program`)
 				ProtectedPorts:      viper.GetIntSlice("protectPorts"),
 				WhitelistedPorts:    viper.GetIntSlice("whitelistedPorts"),
 				AllowedIPs:          viper.GetStringSlice("allowIPs"),
+				WhitelistedIPs:      viper.GetStringSlice("whitelistedIPs"),
 				Reject:              viper.GetBool("reject"),
 				RateTrigger:         viper.GetString("rateTrigger"),
 				ReverseProxySupport: viper.GetBool("reverseProxySupport"),

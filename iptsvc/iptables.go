@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+
+	"github.com/spf13/viper"
 )
 
 const (
@@ -61,6 +63,10 @@ func (s *IPTablesService) initTables() {
 	for _, ip := range config.ServiceConfig.AllowedIPs {
 		utils.LogError(s.IP4Tables.AppendUnique("filter", PROTECT_CHAIN, "-s", ip, "-j", "ACCEPT"))
 	}
+	for _, ip := range config.ServiceConfig.WhitelistedIPs {
+		fmt.Printf("add whitelisted ip: %s\n", ip)
+		s.AddWhitelistedIP(ip, false)
+	}
 
 	// 默认放行的端口初始化
 	for _, port := range s.WhitelistedPorts {
@@ -110,19 +116,33 @@ func (s *IPTablesService) clearAfterExit() {
 	}()
 }
 
-func (s *IPTablesService) AddWhitelistedIP(ip string) {
+func (s *IPTablesService) AddWhitelistedIP(ip string, writeConfig bool) {
 	s.WhitelistedIPs[ip] = struct{}{}
 	utils.LogError(s.IP4Tables.Insert("filter", BANDWIDTH_IN_CHAIN, 1, "-s", ip, "-j", "RETURN"))
 	utils.LogError(s.IP4Tables.Insert("filter", BANDWIDTH_OUT_CHAIN, 1, "-d", ip, "-j", "RETURN"))
 	utils.LogError(s.IP4Tables.Insert("filter", PROTECT_CHAIN, 1, "-s", ip, "-j", "ACCEPT"))
+	if writeConfig {
+		config.ServiceConfig.WhitelistedIPs = append(config.ServiceConfig.WhitelistedIPs, ip)
+		viper.Set("whitelistedIPs", config.ServiceConfig.WhitelistedIPs)
+		utils.LogError(viper.WriteConfig())
+	}
 }
 
-func (s *IPTablesService) RemoveWhitelistedIP(ip string) {
+func (s *IPTablesService) RemoveWhitelistedIP(ip string, writeConfig bool) {
 	delete(s.WhitelistedIPs, ip)
 	delete(s.PacketPerIP, ip)
 	utils.LogError(s.IP4Tables.Delete("filter", BANDWIDTH_IN_CHAIN, "-s", ip, "-j", "RETURN"))
 	utils.LogError(s.IP4Tables.Delete("filter", BANDWIDTH_OUT_CHAIN, "-d", ip, "-j", "RETURN"))
 	utils.LogError(s.IP4Tables.Delete("filter", PROTECT_CHAIN, "-s", ip, "-j", "ACCEPT"))
+	if writeConfig {
+		for i, wip := range config.ServiceConfig.WhitelistedIPs {
+			if wip == ip {
+				config.ServiceConfig.WhitelistedIPs = append(config.ServiceConfig.WhitelistedIPs[:i], config.ServiceConfig.WhitelistedIPs[i+1:]...)
+			}
+		}
+		viper.Set("whitelistedIPs", config.ServiceConfig.WhitelistedIPs)
+		utils.LogError(viper.WriteConfig())
+	}
 }
 
 func (s *IPTablesService) ResetWhitelist() {

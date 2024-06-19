@@ -101,12 +101,12 @@ func (s *IPTablesService) readNFLogs() {
 					log.Println("packet from", srcIP, protocol, dstPort, "ttl", ip.TTL, "count:", s.PacketPerIP[srcIP])
 					if record, exist := s.PacketPerIP[srcIP]; exist && s.AutoAddThreshold > 0 && record >= s.AutoAddThreshold {
 						log.Println("reach threshold, auto add", srcIP, "to whitelist.")
-						s.AddWhitelistedIP(srcIP)
+						s.AddWhitelistedIP(srcIP, true)
 					}
 				}
 			} else if _, added := s.WhitelistedIPs[srcIP]; prefix == PREFIX_TRIGGER && !added {
 				log.Println("rate trigger", prefix, ip.TTL, srcIP, protocol, dstPort, "count:", s.PacketPerIP[srcIP])
-				s.AddWhitelistedIP(srcIP)
+				s.AddWhitelistedIP(srcIP, true)
 			}
 		}
 
